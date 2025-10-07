@@ -1,0 +1,45 @@
+{
+  "name": "Fabric Inspection PWA",
+  "short_name": "Fabric Inspect",
+  "description": "Fabric inspection system for quality control",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "categories": ["productivity", "business"],
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
