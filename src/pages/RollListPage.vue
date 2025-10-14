@@ -41,7 +41,7 @@
     <!-- 條碼輸入區 -->
     <div class="barcode-section q-pa-md">
       <div class="text-h6 q-mb-md">布捲資訊</div>
-      <div class="text-h8 q-mb-md">Barcode測試資料:(F)90000492204 (F)90000492202 (F)90000492203</div>
+      <div class="text-h8 q-mb-md">Barcode測試資料:(F)90000492301 - (F)90000492310</div>
 
       
       <div class="row q-gutter-md">
@@ -52,10 +52,13 @@
             outlined
             dense
             @keyup.enter="handleBarcodeSearch"
+            @update:model-value="handleBarcodeInput"
             :loading="searching"
+            clearable
+            @clear="handleClearBarcode"
           >
             <template v-slot:append>
-              
+              <q-icon name="qr_code_scanner" />
             </template>
           </q-input>
         </div>
@@ -232,10 +235,20 @@
 
     <!-- 布捲列表 -->
     <div class="rolls-info q-pa-md">
-      <div class="text-h6 q-mb-md">Rolls Information</div>
+      <div class="row items-center justify-between q-mb-md">
+        <div class="text-h6">Rolls Information</div>
+        <div class="text-caption text-grey-7">
+          <span v-if="barcodeInput.trim()">
+            顯示 {{ filteredRollsList.length }} 筆 / 共 {{ rollsList.length }} 筆
+          </span>
+          <span v-else>
+            共 {{ rollsList.length }} 筆
+          </span>
+        </div>
+      </div>
       
       <q-table
-        :rows="rollsList"
+        :rows="filteredRollsList"
         :columns="rollColumns"
         row-key="id"
         flat
@@ -243,7 +256,31 @@
         :loading="isLoading"
         :rows-per-page-options="[10, 20, 50]"
         :pagination="{ rowsPerPage: 20 }"
+        class="shadow-1"
       >
+        <template v-slot:no-data>
+          <div class="full-width row flex-center text-grey-7 q-gutter-sm q-pa-lg">
+            <q-icon size="2em" name="inventory_2" />
+            <span>尚無布捲資料，請搜尋條碼或按 Sync 同步</span>
+          </div>
+        </template>
+        
+        <template v-slot:loading>
+          <q-inner-loading showing color="primary" />
+        </template>
+        
+        <template v-slot:body-cell-status="props">
+          <q-td :props="props">
+            <q-chip 
+              :color="getStatusColor(props.value)" 
+              text-color="white"
+              size="sm"
+            >
+              {{ getStatusLabel(props.value) }}
+            </q-chip>
+          </q-td>
+        </template>
+
         <template v-slot:body-cell-grade="props">
           <q-td :props="props">
             <q-chip 
@@ -322,7 +359,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAppState } from '../composables/useAppState';
@@ -348,6 +385,7 @@ const {
   errorMessage,
   clearError,
   loadRollsFromLocal,
+  loadRollsFromServer,
   searchRollByBarcode,
   editRoll,
   deleteRoll
@@ -376,6 +414,13 @@ const rollColumns = [
     label: 'Roll#',
     align: 'left',
     field: 'roll_number',
+    sortable: true
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    align: 'center',
+    field: 'status',
     sortable: true
   },
   {
@@ -421,7 +466,16 @@ const rollColumns = [
   }
 ];
 
-// 計算屬性
+// 計算屬性 - 根據 barcode 篩選
+const filteredRollsList = computed(() => {
+  if (!barcodeInput.value.trim()) {
+    return rollsList.value;
+  }
+  return rollsList.value.filter(roll => 
+    roll.barcode?.toLowerCase().includes(barcodeInput.value.trim().toLowerCase())
+  );
+});
+
 const reachedStatus = computed(() => {
   if (!currentRoll.value) return '';
   return currentRoll.value.inspected_length >= currentRoll.value.need_inspect_length ? 'Y' : 'N';
@@ -432,6 +486,23 @@ const canStartInspection = computed(() => {
 });
 
 // 方法
+// Barcode 長度（可調整）
+const BARCODE_LENGTH = 15; // (F)90000492201 = 15個字元
+
+// 自動搜尋處理
+const handleBarcodeInput = (val: string) => {
+  if (val && val.length >= BARCODE_LENGTH) {
+    void handleBarcodeSearch();
+  }
+};
+
+// 清除 barcode 時重置
+const handleClearBarcode = () => {
+  currentRoll.value = null;
+  setCurrentRoll(null);
+  barcodeInput.value = '';
+};
+
 const handleBarcodeSearch = async () => {
   if (!barcodeInput.value.trim()) return;
   
@@ -477,31 +548,55 @@ const handleReset = () => {
 const handleSync = async () => {
   syncing.value = true;
   try {
-    const success = await performManualSync();
-    if (success) {
-      $q.notify({
-        type: 'positive',
-        message: '同步完成',
-        position: 'top'
-      });
-    } else {
-      $q.notify({
-        type: 'warning',
-        message: '同步部分失敗',
-        position: 'top'
-      });
-    }
+    const result = await performManualSync();
+    $q.notify({
+      type: result.success ? 'positive' : 'warning',
+      message: result.message,
+      position: 'top',
+      icon: result.success ? 'cloud_done' : 'cloud_off',
+      timeout: 2000
+    });
   } catch (error) {
     console.error('Sync error:', error);
     $q.notify({
       type: 'negative',
-      message: '同步失敗',
+      message: '同步發生錯誤',
       position: 'top'
     });
   } finally {
     syncing.value = false;
-    // 同步後更新徽章數量
     await updatePendingSyncCount();
+  }
+};
+
+// Status 相關顏色與圖示
+const getStatusColor = (status: string) => {
+  const statusLower = status?.toLowerCase();
+  switch (statusLower) {
+    case 'pending': return 'grey-6';
+    case 'inspecting': return 'orange-7';
+    case 'completed': return 'positive';
+    default: return 'grey';
+  }
+};
+
+const getStatusIcon = (status: string) => {
+  const statusLower = status?.toLowerCase();
+  switch (statusLower) {
+    case 'pending': return 'schedule';
+    case 'inspecting': return 'analytics';
+    case 'completed': return 'check_circle';
+    default: return 'help_outline';
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  const statusLower = status?.toLowerCase();
+  switch (statusLower) {
+    case 'pending': return 'Pending';
+    case 'inspecting': return 'Inspecting';
+    case 'completed': return 'Completed';
+    default: return status || '-';
   }
 };
 
@@ -523,22 +618,46 @@ const handleViewDetails = (roll: Roll) => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// 編輯表單
+const editFormData = ref({
+  grade: '',
+  standard_yard: 0,
+  standard_kg: 0,
+  supplier: '',
+  po_no: '',
+  style: '',
+  color: ''
+});
+
 const handleEdit = async (roll: Roll) => {
-  const { dialog } = $q;
-  dialog({
-    title: '編輯布捲',
-    message: '修改 Grade 與標準碼數',
-    prompt: {
-      model: roll.grade || '',
-      type: 'text',
-      isValid: (val) => !val || ['A','B','C'].includes(val.toUpperCase()),
-      label: 'Grade (A/B/C)'
-    },
-    cancel: true,
-    persistent: true
-  }).onOk(async (grade: string) => {
-    const ok = await editRoll(roll.id, { grade: grade?.toUpperCase() as any });
-    if (ok) $q.notify({ type: 'positive', message: '已更新', position: 'top' });
+  // 初始化表單資料
+  editFormData.value = {
+    grade: roll.grade || '',
+    standard_yard: roll.standard_yard || 0,
+    standard_kg: roll.standard_kg || 0,
+    supplier: roll.supplier || '',
+    po_no: roll.po_no || '',
+    style: roll.style || '',
+    color: roll.color || ''
+  };
+
+  $q.dialog({
+    component: defineAsyncComponent(() => import('../components/RollEditDialog.vue')),
+    componentProps: {
+      roll: roll,
+      formData: editFormData.value
+    }
+  }).onOk(async (updatedData: any) => {
+    const ok = await editRoll(roll.id, updatedData);
+    if (ok) {
+      $q.notify({ 
+        type: 'positive', 
+        message: '布捲資料已更新', 
+        position: 'top',
+        timeout: 1500
+      });
+      await loadRollsFromLocal(); // 重新載入
+    }
   });
 };
 
@@ -564,8 +683,18 @@ const checkError = () => {
 
 // 生命週期
 onMounted(async () => {
+  // 先載入本地資料（快）
   await loadRollsFromLocal();
   checkError();
+  
+  // 背景載入伺服器資料（若線上）
+  if (isOnline.value) {
+    try {
+      await loadRollsFromServer();
+    } catch (e) {
+      console.warn('Failed to load from server on mount:', e);
+    }
+  }
 });
 </script>
 

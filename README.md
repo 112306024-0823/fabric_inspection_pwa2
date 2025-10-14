@@ -83,6 +83,10 @@ npm run build
 npx serve dist/pwa
 ```
 
+### 直接跑pwa網頁
+npx quasar dev -m pwa
+
+
 ## 使用流程
 
 ### 1. 布捲清單頁面

@@ -1,201 +1,321 @@
 <template>
   <q-page class="inspection-page">
     <!-- 標題列 -->
-    <div class="header-section q-pa-md">
+    <div class="header-section q-pa-md bg-white">
       <div class="row items-center justify-between">
         <div class="col">
-          <div class="text-h5 q-mb-sm">檢驗作業 (Inspection)</div>
-          <div class="row q-gutter-md text-body2">
-            <div>Style: {{ currentRoll?.style }}</div>
-            <div>Color: {{ currentRoll?.color }}</div>
-            <div>BL#: {{ currentRoll?.bl_no }}</div>
-            <div>Lot: {{ currentRoll?.lot }}</div>
-            <div>Roll#: {{ currentRoll?.roll_number }}</div>
-            <div>Average Point: {{ currentRoll?.avg_points?.toFixed(2) || '0.00' }}</div>
+          <div class="text-h5 q-mb-sm text-weight-medium">檢驗作業</div>
+          <div class="row q-gutter-md text-body2 text-grey-8">
+            <div><strong>Style:</strong> {{ currentRoll?.style }}</div>
+            <div><strong>Color:</strong> {{ currentRoll?.color }}</div>
+            <div><strong>BL#:</strong> {{ currentRoll?.bl_no }}</div>
+            <div><strong>Lot:</strong> {{ currentRoll?.lot }}</div>
+            <div><strong>Roll#:</strong> {{ currentRoll?.roll_number }}</div>
+            <div><strong>Avg Point:</strong> {{ currentRoll?.avg_points?.toFixed(2) || '0.00' }}</div>
           </div>
-          <div class="row q-gutter-md text-body2 q-mt-xs">
-            <div>Fabric: {{ currentRoll?.fabric_description }}</div>
-            <div>Supplier: {{ currentRoll?.supplier }}</div>
+          <div class="text-body2 text-grey-7 q-mt-xs">
+            <strong>Fabric:</strong> {{ currentRoll?.fabric_description }} | <strong>Supplier:</strong> {{ currentRoll?.supplier }}
           </div>
         </div>
         <div class="col-auto">
-          <q-btn 
-            flat 
-            round 
-            icon="arrow_back" 
-            @click="handleBack"
-            size="lg"
-          >
-            <q-tooltip>返回</q-tooltip>
+          <q-btn flat round icon="arrow_back" @click="handleBack" size="md">
+            <q-tooltip>返回清單</q-tooltip>
           </q-btn>
         </div>
       </div>
     </div>
 
-    <div class="row q-gutter-md q-pa-md">
+    <div class="row q-col-gutter-md q-pa-md">
       <!-- 左側表單區域 -->
       <div class="col-md-8 col-sm-12">
         <!-- Spec Check 區塊 -->
-        <q-card class="spec-check-card q-mb-md">
+        <q-card class="spec-check-card q-mb-md shadow-2">
           <q-card-section>
-            <div class="text-h6 q-mb-md">Spec Check</div>
+            <div class="section-title q-mb-md">
+              <q-icon name="straighten" size="sm" class="q-mr-sm" />
+              <span class="text-h6">Spec Check</span>
+            </div>
             
-            <div class="row q-gutter-md">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-checkbox v-model="shortageCheck" label="Shortage Check" />
+            <div class="row q-col-gutter-md">
+              <div class="col-12">
+                <q-checkbox v-model="shortageCheck" label="Shortage Check" color="primary" />
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-md">
-              <div class="col-md-1 col-sm-12 col-xs-6">
-                <label for="standard_weight">NW</label>
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.standard_weight"
-                  label="STANDARD"
-                  outlined
-                  dense
-                  suffix="KGS"
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.checked_weight"
-                  label="CHECKED"
-                  outlined
-                  dense
-                  suffix="KGS"
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-2 col-sm-6 col-xs-12">
-                <q-input
-                  :model-value="weightDiff"
-                  label="DIFF"
-                  outlined
-                  dense
-                  suffix="%"
-                  readonly
-                />
-              </div>
-            </div>
-
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-md-1 col-sm-6 col-xs-6">
-                <label for="standard_length">LENGTH</label>
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.standard_length"
-                  label="STANDARD"
-                  outlined
-                  dense
-                  suffix="YARDS"
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.checked_length"
-                  label="CHECKED"
-                  outlined
-                  dense
-                  suffix="YARDS"
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-2 col-sm-6 col-xs-12">
-                <q-input
-                  :model-value="lengthDiff"
-                  label="DIFF"
-                  outlined
-                  dense
-                  suffix="%"
-                  readonly
-                />
+            <!-- 重量檢查 -->
+            <div class="spec-group q-mt-md">
+              <div class="text-subtitle2 text-grey-8 q-mb-sm">Weight (KGS)</div>
+              <div class="row q-col-gutter-md">
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.standard_weight"
+                    label="Standard"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('standard_weight', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('standard_weight', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.checked_weight"
+                    label="Checked"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('checked_weight', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('checked_weight', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    :model-value="weightDiff"
+                    label="Diff %"
+                    outlined
+                    dense
+                    readonly
+                    :bg-color="getDiffColor(weightDiff)"
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.ticket_full_width"
-                  label="Ticket Full Width"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.actual_full_width"
-                  label="Actual Full Width"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-2 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.ticket_cut_width"
-                  label="Ticket Cut Width"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
-              </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.moisture"
-                  label="Moisture"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
+            <!-- 長度檢查 -->
+            <div class="spec-group q-mt-md">
+              <div class="text-subtitle2 text-grey-8 q-mb-sm">Length (YARDS)</div>
+              <div class="row q-col-gutter-md">
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.standard_length"
+                    label="Standard"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('standard_length', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('standard_length', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.checked_length"
+                    label="Checked"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('checked_length', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('checked_length', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <q-input
+                    :model-value="lengthDiff"
+                    label="Diff %"
+                    outlined
+                    dense
+                    readonly
+                    :bg-color="getDiffColor(lengthDiff)"
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.skew_width"
-                  label="SkewWidth"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
+            <!-- 寬度與其他 -->
+            <div class="spec-group q-mt-md">
+              <div class="text-subtitle2 text-grey-8 q-mb-sm">Width & Others</div>
+              <div class="row q-col-gutter-md">
+                <div class="col-md-3 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.ticket_full_width"
+                    label="Ticket Full Width"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('ticket_full_width', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('ticket_full_width', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.actual_full_width"
+                    label="Actual Full Width"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('actual_full_width', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('actual_full_width', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.ticket_cut_width"
+                    label="Ticket Cut Width"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('ticket_cut_width', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('ticket_cut_width', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.moisture"
+                    label="Moisture %"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('moisture', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('moisture', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
               </div>
-              <div class="col-md-6 col-sm-6 col-xs-12">
-                <q-input
-                  v-model.number="specForm.skew_height"
-                  label="SkewHeight"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                />
+              <div class="row q-col-gutter-md q-mt-sm">
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.skew_width"
+                    label="Skew Width"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('skew_width', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('skew_width', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                  <q-input
+                    v-model.number="specForm.skew_height"
+                    label="Skew Height"
+                    outlined
+                    dense
+                    type="number"
+                    step="0.01"
+                    @focus="handleFieldFocus('skew_height', 'spec')"
+                    class="keypad-input"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        name="dialpad" 
+                        color="primary" 
+                        size="xs"
+                        class="cursor-pointer"
+                        @click="handleFieldFocus('skew_height', 'spec')"
+                      />
+                    </template>
+                  </q-input>
+                </div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <!-- Quality Check 區塊 -->
-        <q-card class="quality-check-card q-mb-md">
+        <q-card class="quality-check-card q-mb-md shadow-2">
           <q-card-section>
-            <div class="text-h6 q-mb-md">Quality Check</div>
+            <div class="section-title q-mb-md">
+              <q-icon name="verified" size="sm" class="q-mr-sm" />
+              <span class="text-h6">Quality Check</span>
+            </div>
             
-            <div class="row q-gutter-md">
+            <div class="row q-col-gutter-md">
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
                   v-model="qualityForm.appearance"
@@ -203,7 +323,15 @@
                   label="Appearance"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                  :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'"
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.appearance === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
@@ -212,7 +340,14 @@
                   label="Hand-Feel"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.hand_feel === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.hand_feel === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
@@ -221,11 +356,18 @@
                   label="Slant Issue"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.slant_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.slant_issue === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-sm">
+            <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
                   v-model="qualityForm.color_shade"
@@ -233,16 +375,30 @@
                   label="Color Shade"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.color_shade === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.color_shade === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
                   v-model="qualityForm.specification_issue"
                   :options="passFailOptions"
-                  label="Specification Issue"
+                  label="Specification"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.specification_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.specification_issue === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
@@ -251,11 +407,18 @@
                   label="Approved Sample"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.approved_sample === 'yes' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.approved_sample === 'yes' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-sm">
+            <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
                   v-model="qualityForm.sticker"
@@ -263,7 +426,14 @@
                   label="Sticker"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.sticker === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.sticker === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
@@ -272,43 +442,63 @@
                   label="Packing"
                   outlined
                   dense
-                />
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:prepend>
+                    <q-icon :name="qualityForm.packing === 'pass' ? 'check_circle' : 'cancel'" 
+                            :color="qualityForm.packing === 'pass' ? 'positive' : 'negative'" />
+                  </template>
+                </q-select>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
         <!-- Defect Record 區塊 -->
-        <q-card class="defect-record-card">
+        <q-card class="defect-record-card shadow-2">
           <q-card-section>
-            <div class="text-h6 q-mb-md">Defect Record</div>
+            <div class="section-title q-mb-md">
+              <q-icon name="bug_report" size="sm" class="q-mr-sm" />
+              <span class="text-h6">Defect Record</span>
+              <q-chip v-if="defectsList.length > 0" color="negative" text-color="white" size="sm" class="q-ml-sm">
+                {{ defectsList.length }} 筆缺陷
+              </q-chip>
+            </div>
             
-            <div class="row q-gutter-md">
+            <div class="row q-col-gutter-md">
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
-                  v-model="defectForm.defect_code_id"
-                  :options="defectCodeOptions"
+                  v-model="selectedCategory"
+                  :options="categoryOptions"
                   label="Issue Category"
                   outlined
                   dense
-                  option-value="id"
-                  option-label="description_zh"
-                  emit-value
-                  map-options
+                  @update:model-value="onCategoryChange"
                 />
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-select
                   v-model="defectForm.defect_code_id"
-                  :options="defectCodeOptions"
+                  :options="filteredDefectCodes"
                   label="Defect Code"
                   outlined
                   dense
                   option-value="id"
-                  option-label="description_kh"
+                  :option-label="opt => opt.description_zh || opt.description_en || opt.code"
                   emit-value
                   map-options
-                />
+                  :disable="!selectedCategory"
+                >
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.description_zh || scope.opt.description_en }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.code }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
               </div>
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-input
@@ -320,40 +510,56 @@
               </div>
             </div>
 
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-input
+                  ref="positionInput"
                   v-model.number="defectForm.position_yard"
                   label="Position (Yard)"
                   outlined
                   dense
                   type="number"
                   step="0.01"
-                />
+                  @focus="handleFieldFocus('position_yard', 'defect')"
+                  class="keypad-input"
+                >
+                  <template v-slot:append>
+                    <q-icon 
+                      name="dialpad" 
+                      color="primary" 
+                      size="xs"
+                      class="cursor-pointer"
+                      @click="handleFieldFocus('position_yard', 'defect')"
+                    />
+                  </template>
+                </q-input>
               </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
-                <q-input
+              <div class="col-md-4 col-sm-6 col-xs-12">
+                <q-select
                   v-model.number="defectForm.level"
-                  label="Level"
+                  :options="[1, 2, 3, 4, 5]"
+                  label="Severity Level"
                   outlined
                   dense
-                  type="number"
-                  min="1"
-                  max="5"
+                  emit-value
+                  map-options
                 />
               </div>
-              <div class="col-md-3 col-sm-6 col-xs-12">
+              <div class="col-md-4 col-sm-6 col-xs-12">
                 <q-btn 
                   color="primary" 
                   label="ADD"
+                  icon="add"
                   @click="handleAddDefect"
                   :disable="!canAddDefect"
+                  class="full-width"
+                  style="height: 40px"
                 />
               </div>
             </div>
 
             <!-- 缺陷列表 -->
-            <div class="defect-list q-mt-md">
+            <div v-if="defectsList.length > 0" class="defect-list q-mt-md">
               <q-table
                 :rows="defectsList"
                 :columns="defectColumns"
@@ -362,16 +568,26 @@
                 bordered
                 :rows-per-page-options="[5, 10, 20]"
                 :pagination="{ rowsPerPage: 10 }"
+                dense
               >
+                <template v-slot:body-cell-code="props">
+                  <q-td :props="props">
+                    <div class="text-weight-medium">
+                      {{ getDefectCode(props.row.defect_code_id)?.description_zh || 
+                         getDefectCode(props.row.defect_code_id)?.description_en || '-' }}
+                    </div>
+                    <div class="text-caption text-grey-7">
+                      Code: {{ getDefectCode(props.row.defect_code_id)?.code || '-' }}
+                    </div>
+                  </q-td>
+                </template>
+
                 <template v-slot:body-cell-level="props">
                   <q-td :props="props">
-                    <q-chip 
+                    <q-badge 
                       :color="getDefectLevelColor(props.value)" 
-                      text-color="white"
-                      size="sm"
-                    >
-                      {{ props.value }}
-                    </q-chip>
+                      :label="props.value"
+                    />
                   </q-td>
                 </template>
 
@@ -379,6 +595,7 @@
                   <q-td :props="props">
                     <q-btn 
                       flat 
+                      dense
                       color="negative" 
                       icon="delete"
                       size="sm"
@@ -390,25 +607,41 @@
                 </template>
               </q-table>
             </div>
+            <div v-else class="text-center text-grey-6 q-pa-md">
+              <q-icon name="info" size="md" />
+              <div class="q-mt-sm">尚無缺陷記錄</div>
+            </div>
           </q-card-section>
         </q-card>
       </div>
 
       <!-- 右側數字鍵盤 -->
-      <div class="col-md-3 col-sm-12">
-        <q-card class="keypad-card">
+      <div class="col-md-4 col-sm-12">
+        <q-card class="keypad-card shadow-2 sticky-keypad">
           <q-card-section>
-            <div class="text-h6 q-mb-md">數字鍵盤</div>
+            <div class="section-title q-mb-md">
+              <q-icon name="dialpad" size="sm" class="q-mr-sm" />
+              <span class="text-h6">數字鍵盤</span>
+            </div>
             <div class="keypad-grid">
               <div class="keypad-row" v-for="(row, rowIndex) in keypadLayout" :key="rowIndex">
                 <q-btn
                   v-for="key in row"
                   :key="key"
-                  :label="key"
+                  :label="key === 'Back' ? '←' : key"
                   :color="key === 'Back' ? 'negative' : 'primary'"
                   class="keypad-btn"
                   @click="handleKeypadInput(key)"
+                  unelevated
                 />
+              </div>
+            </div>
+            <div class="text-caption text-grey-7 q-mt-sm text-center">
+              <div v-if="focusedField" class="text-primary text-weight-medium">
+                當前輸入: {{ getFieldLabel(focusedField) }}
+              </div>
+              <div v-else class="text-grey-6">
+                請點擊數字欄位開始輸入
               </div>
             </div>
           </q-card-section>
@@ -417,14 +650,15 @@
     </div>
 
     <!-- 底部按鈕 -->
-    <div class="bottom-actions q-pa-md">
-      <div class="row justify-between items-center">
+    <div class="bottom-actions q-pa-md bg-white">
+      <div class="row justify-between items-center q-col-gutter-sm">
         <div class="col-auto">
           <q-btn 
-            color="grey" 
+            outline
+            color="grey-7" 
             label="Start Fabric Inspect"
+            icon="play_arrow"
             :disable="true"
-            size="lg"
           />
         </div>
         <div class="col-auto">
@@ -432,28 +666,32 @@
             <q-btn 
               color="primary" 
               label="Save"
+              icon="save"
               @click="handleSave"
               :loading="saving"
-              size="lg"
+              unelevated
             />
             <q-btn 
+              outline
               color="grey" 
               label="Cancel"
+              icon="close"
               @click="handleCancel"
-              size="lg"
             />
             <q-btn 
               color="positive" 
               label="Roll Finish"
+              icon="check_circle"
               @click="handleRollFinish"
               :loading="finishing"
-              size="lg"
+              unelevated
             />
             <q-btn 
+              outline
               color="info" 
               label="Signature"
+              icon="edit"
               :disable="true"
-              size="lg"
             />
           </div>
         </div>
@@ -464,7 +702,11 @@
             outlined
             dense
             style="min-width: 100px"
-          />
+          >
+            <template v-slot:prepend>
+              <q-icon name="language" />
+            </template>
+          </q-select>
         </div>
       </div>
     </div>
@@ -477,35 +719,40 @@ import { useRoute, useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAppState } from '../composables/useAppState';
 import { useRolls } from '../composables/useRolls';
-import { db } from '../database';
-import { getAllDefectCodes } from '../services/api';
-import { addToOutbox } from '../services/sync';
-import type { 
-  Roll, 
-  Inspection, 
-  Defect, 
-  DefectCode, 
-  SpecCheckForm, 
-  QualityCheckForm, 
-  DefectForm 
-} from '../types';
+import { useInspections } from '../composables/useInspections';
+import { useDefects } from '../composables/useDefects';
+import type { Roll, Inspection, Defect, DefectCode, SpecCheckForm, QualityCheckForm, DefectForm } from '../types';
 
 const route = useRoute();
 const router = useRouter();
 const $q = useQuasar();
 
 // Composables
-const { setCurrentRoll, setCurrentInspection } = useAppState();
-const { getRollById } = useRolls();
+const { setCurrentRoll, setCurrentInspection, updatePendingSyncCount } = useAppState();
+const { getRollById, updateRollStatus } = useRolls();
+const { getInspection, saveInspection, finishInspection } = useInspections();
+const { 
+  defectsList, 
+  defectCodesList,
+  defectCodesByCategory,
+  loadDefectsFromLocal, 
+  loadDefectCodes, 
+  addDefect, 
+  deleteDefect,
+  getDefectCodeDescription,
+  getDefectCode
+} = useDefects();
 
 // 響應式資料
 const currentRoll = ref<Roll | null>(null);
 const currentInspection = ref<Inspection | null>(null);
-const defectsList = ref<Defect[]>([]);
-const defectCodes = ref<DefectCode[]>([]);
+const positionInput = ref<any>(null);
+const focusedField = ref<string>('');
+const focusedFieldType = ref<'spec' | 'defect' | null>(null);
+const selectedCategory = ref<string>('');
 
 // 表單資料
-const shortageCheck = ref(false);
+const shortageCheck = ref(false); 
 const specForm = ref<SpecCheckForm>({
   standard_weight: 0,
   checked_weight: 0,
@@ -538,10 +785,19 @@ const defectForm = ref<DefectForm>({
 });
 
 // 選項資料
-const passFailOptions = ['pass', 'fail'];
-const yesNoOptions = ['yes', 'no'];
-const languageOptions = ['CAB', 'EN', 'ZH'];
-const selectedLanguage = ref('CAB');
+const passFailOptions = [
+  { label: 'Pass', value: 'pass' },
+  { label: 'Fail', value: 'fail' }
+];
+const yesNoOptions = [
+  { label: 'Yes', value: 'yes' },
+  { label: 'No', value: 'no' }
+];
+const languageOptions = [
+  { label: 'English', value: 'EN' },
+
+];
+const selectedLanguage = ref({ label: '柬埔寨語', value: 'CAB' });
 
 // 狀態
 const saving = ref(false);
@@ -555,6 +811,32 @@ const keypadLayout = [
   ['.', '0', 'Back']
 ];
 
+// 計算屬性
+const categoryOptions = computed(() => {
+  return Object.keys(defectCodesByCategory.value).map(cat => ({ label: cat, value: cat }));
+});
+
+const filteredDefectCodes = computed(() => {
+  if (!selectedCategory.value) return [];
+  return defectCodesByCategory.value[selectedCategory.value] || [];
+});
+
+const weightDiff = computed(() => {
+  if (!specForm.value.standard_weight || !specForm.value.checked_weight) return '0.00';
+  const diff = ((specForm.value.checked_weight - specForm.value.standard_weight) / specForm.value.standard_weight) * 100;
+  return diff.toFixed(2);
+});
+
+const lengthDiff = computed(() => {
+  if (!specForm.value.standard_length || !specForm.value.checked_length) return '0.00';
+  const diff = ((specForm.value.checked_length - specForm.value.standard_length) / specForm.value.standard_length) * 100;
+  return diff.toFixed(2);
+});
+
+const canAddDefect = computed(() => {
+  return defectForm.value.defect_code_id && defectForm.value.position_yard > 0;
+});
+
 // 表格欄位定義
 const defectColumns = [
   {
@@ -562,8 +844,8 @@ const defectColumns = [
     required: true,
     label: 'Defect Code',
     align: 'left',
-    field: (row: Defect) => getDefectCodeDescription(row.defect_code_id),
-    sortable: true
+    field: 'defect_code_id',
+    sortable: false
   },
   {
     name: 'position_yard',
@@ -588,30 +870,11 @@ const defectColumns = [
   },
   {
     name: 'actions',
-    label: 'Actions',
+    label: '',
     align: 'center',
     field: 'actions'
   }
 ];
-
-// 計算屬性
-const weightDiff = computed(() => {
-  if (!specForm.value.standard_weight || !specForm.value.checked_weight) return '0%';
-  const diff = ((specForm.value.checked_weight - specForm.value.standard_weight) / specForm.value.standard_weight) * 100;
-  return `${diff.toFixed(2)}%`;
-});
-
-const lengthDiff = computed(() => {
-  if (!specForm.value.standard_length || !specForm.value.checked_length) return '0%';
-  const diff = ((specForm.value.checked_length - specForm.value.standard_length) / specForm.value.standard_length) * 100;
-  return `${diff.toFixed(2)}%`;
-});
-
-const defectCodeOptions = computed(() => defectCodes.value);
-
-const canAddDefect = computed(() => {
-  return defectForm.value.defect_code_id && defectForm.value.position_yard > 0;
-});
 
 // 方法
 const loadRollData = async () => {
@@ -629,18 +892,28 @@ const loadRollData = async () => {
         message: '找不到指定的布捲',
         position: 'top'
       });
-    void router.push('/');
+      void router.push('/');
       return;
     }
 
     currentRoll.value = roll;
     setCurrentRoll(roll);
 
+    // 更新ROLL狀態為 inspecting
+    if (roll.status === 'pending') {
+      await updateRollStatus(rollId, 'inspecting');
+    }
+
     // 載入檢驗記錄
-    await loadInspectionData(rollId);
+    const inspection = await getInspection(rollId);
+    if (inspection) {
+      currentInspection.value = inspection;
+      setCurrentInspection(inspection);
+      loadInspectionForm(inspection);
+    }
     
     // 載入缺陷記錄
-    await loadDefectsData(rollId);
+    await loadDefectsFromLocal(rollId);
     
     // 載入缺陷代碼
     await loadDefectCodes();
@@ -654,93 +927,131 @@ const loadRollData = async () => {
   }
 };
 
-const loadInspectionData = async (rollId: string) => {
-  try {
-    const inspection = await db.inspections.where('roll_id').equals(rollId).first();
-    if (inspection) {
-      currentInspection.value = inspection;
-      setCurrentInspection(inspection);
-      
-      // 載入表單資料
-      specForm.value = {
-        standard_weight: inspection.standard_weight || 0,
-        checked_weight: inspection.checked_weight || 0,
-        standard_length: inspection.standard_length || 0,
-        checked_length: inspection.checked_length || 0,
-        ticket_full_width: inspection.ticket_full_width || 0,
-        actual_full_width: inspection.actual_full_width || 0,
-        ticket_cut_width: inspection.ticket_cut_width || 0,
-        moisture: inspection.moisture || 0,
-        skew_width: inspection.skew_width || 0,
-        skew_height: inspection.skew_height || 0
-      };
-      
-      qualityForm.value = {
-        appearance: (inspection.appearance as 'pass' | 'fail') ?? 'pass',
-        hand_feel: (inspection.hand_feel as 'pass' | 'fail') ?? 'pass',
-        slant_issue: (inspection.slant_issue as 'pass' | 'fail') ?? 'pass',
-        color_shade: (inspection.color_shade as 'pass' | 'fail') ?? 'pass',
-        specification_issue: (inspection.specification_issue as 'pass' | 'fail') ?? 'pass',
-        approved_sample: (inspection.approved_sample as 'yes' | 'no') ?? 'yes',
-        sticker: (inspection.sticker as 'pass' | 'fail') ?? 'pass',
-        packing: (inspection.packing as 'pass' | 'fail') ?? 'pass'
-      };
-    }
-  } catch (error) {
-    console.error('Error loading inspection data:', error);
-  }
+const loadInspectionForm = (inspection: Inspection) => {
+  specForm.value = {
+    standard_weight: inspection.standard_weight || 0,
+    checked_weight: inspection.checked_weight || 0,
+    standard_length: inspection.standard_length || 0,
+    checked_length: inspection.checked_length || 0,
+    ticket_full_width: inspection.ticket_full_width || 0,
+    actual_full_width: inspection.actual_full_width || 0,
+    ticket_cut_width: inspection.ticket_cut_width || 0,
+    moisture: inspection.moisture || 0,
+    skew_width: inspection.skew_width || 0,
+    skew_height: inspection.skew_height || 0
+  };
+  
+  qualityForm.value = {
+    appearance: inspection.appearance === 'fail' ? 'fail' : 'pass',
+    hand_feel: inspection.hand_feel === 'fail' ? 'fail' : 'pass',
+    slant_issue: inspection.slant_issue === 'fail' ? 'fail' : 'pass',
+    color_shade: inspection.color_shade === 'fail' ? 'fail' : 'pass',
+    specification_issue: inspection.specification_issue === 'fail' ? 'fail' : 'pass',
+    approved_sample: inspection.approved_sample === 'no' ? 'no' : 'yes',
+    sticker: inspection.sticker === 'fail' ? 'fail' : 'pass',
+    packing: inspection.packing === 'fail' ? 'fail' : 'pass'
+  };
 };
 
-const loadDefectsData = async (rollId: string) => {
-  try {
-    const defects = await db.defects.where('roll_id').equals(rollId).toArray();
-    defectsList.value = defects;
-  } catch (error) {
-    console.error('Error loading defects data:', error);
-  }
+const onCategoryChange = () => {
+  // 清空已選的 defect code
+  defectForm.value.defect_code_id = '';
 };
 
-const loadDefectCodes = async () => {
-  try {
-    const codes = await getAllDefectCodes();
-    defectCodes.value = codes;
-  } catch (error) {
-    console.error('Error loading defect codes:', error);
-  }
+// 處理欄位聚焦
+const handleFieldFocus = (fieldName: string, fieldType: 'spec' | 'defect') => {
+  focusedField.value = fieldName;
+  focusedFieldType.value = fieldType;
+  console.log('✓ Field focused:', fieldName, fieldType);
+};
+
+// 取得欄位標籤
+const getFieldLabel = (field: string): string => {
+  const labels: Record<string, string> = {
+    'standard_weight': 'Weight - Standard (KGS)',
+    'checked_weight': 'Weight - Checked (KGS)',
+    'standard_length': 'Length - Standard (YARDS)',
+    'checked_length': 'Length - Checked (YARDS)',
+    'ticket_full_width': 'Ticket Full Width',
+    'actual_full_width': 'Actual Full Width',
+    'ticket_cut_width': 'Ticket Cut Width',
+    'moisture': 'Moisture %',
+    'skew_width': 'Skew Width',
+    'skew_height': 'Skew Height',
+    'position_yard': 'Position (Yard)'
+  };
+  return labels[field] || field;
+};
+
+const getCodeDescription = (code: DefectCode) => {
+  const lang = selectedLanguage.value.value;
+  if (lang === 'CAB') return code.description_kh || code.description_zh || code.description_en;
+  if (lang === 'EN') return code.description_en || code.description_zh || code.description_kh;
+  return code.description_zh || code.description_en || code.description_kh;
 };
 
 const handleKeypadInput = (key: string) => {
-  // TODO: 實作數字鍵盤輸入邏輯
-  console.log('Keypad input:', key);
+  if (!focusedField.value || !focusedFieldType.value) return;
+
+  const fieldName = focusedField.value;
+  const fieldType = focusedFieldType.value;
+
+  // 取得當前欄位值
+  let currentValue = '0';
+  if (fieldType === 'spec') {
+    currentValue = String(specForm.value[fieldName as keyof SpecCheckForm] || '0');
+  } else if (fieldType === 'defect' && fieldName === 'position_yard') {
+    currentValue = String(defectForm.value.position_yard || '0');
+  }
+
+  // 處理按鍵輸入
+  let newValue = '';
+  
+  if (key === 'Back') {
+    // 退格
+    if (currentValue.length <= 1) {
+      newValue = '0';
+    } else {
+      newValue = currentValue.slice(0, -1);
+    }
+  } else if (key === '.') {
+    // 小數點
+    if (!currentValue.includes('.')) {
+      newValue = currentValue + '.';
+    } else {
+      return; // 已有小數點，不處理
+    }
+  } else {
+    // 數字
+    if (currentValue === '0') {
+      newValue = key;
+    } else {
+      newValue = currentValue + key;
+    }
+  }
+
+  // 更新對應欄位的值
+  const numValue = parseFloat(newValue) || 0;
+  
+  if (fieldType === 'spec') {
+    specForm.value[fieldName as keyof SpecCheckForm] = numValue as any;
+  } else if (fieldType === 'defect' && fieldName === 'position_yard') {
+    defectForm.value.position_yard = numValue;
+  }
+
+  console.log('✓ Keypad input:', key, '→', fieldName, '=', newValue);
 };
 
 const handleAddDefect = async () => {
   if (!canAddDefect.value || !currentRoll.value) return;
 
-  try {
-    const newDefect: Defect = {
-      id: crypto.randomUUID(),
-      roll_id: currentRoll.value.id,
-      inspection_id: currentInspection.value?.id,
-      defect_code_id: defectForm.value.defect_code_id,
-      position_yard: defectForm.value.position_yard,
-      level: defectForm.value.level,
-      remark: defectForm.value.remark,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      rowversion: 1,
-      _dirty: true
-    };
+  const result = await addDefect(
+    currentRoll.value.id,
+    currentInspection.value?.id,
+    defectForm.value
+  );
 
-    // 儲存到本地資料庫
-    await db.defects.add(newDefect);
-    
-    // 加入同步佇列
-    await addToOutbox('defects', 'upsert', newDefect.id, newDefect);
-    
-    // 更新本地狀態
-    defectsList.value.push(newDefect);
-    
+  if (result) {
     // 清空表單
     defectForm.value = {
       defect_code_id: '',
@@ -748,54 +1059,35 @@ const handleAddDefect = async () => {
       level: 1,
       remark: ''
     };
+    selectedCategory.value = '';
 
     $q.notify({
       type: 'positive',
       message: '缺陷記錄已新增',
-      position: 'top'
+      position: 'top',
+      timeout: 1000
     });
-  } catch (error) {
-    console.error('Error adding defect:', error);
-    $q.notify({
-      type: 'negative',
-      message: '新增缺陷記錄失敗',
-      position: 'top'
-    });
+    
+    await updatePendingSyncCount();
   }
 };
 
-const handleDeleteDefect = async (defect: Defect) => {
+const handleDeleteDefect = (defect: Defect) => {
   $q.dialog({
     title: '確認刪除',
     message: '確定要刪除這個缺陷記錄嗎？',
     cancel: true,
     persistent: true
   }).onOk(async () => {
-    try {
-      // 從本地資料庫刪除
-      await db.defects.delete(defect.id);
-      
-      // 加入同步佇列
-      await addToOutbox('defects', 'delete', defect.id, defect);
-      
-      // 更新本地狀態
-      const index = defectsList.value.findIndex(d => d.id === defect.id);
-      if (index > -1) {
-        defectsList.value.splice(index, 1);
-      }
-
+    const ok = await deleteDefect(defect.id);
+    if (ok) {
       $q.notify({
         type: 'positive',
         message: '缺陷記錄已刪除',
-        position: 'top'
+        position: 'top',
+        timeout: 1000
       });
-    } catch (error) {
-      console.error('Error deleting defect:', error);
-      $q.notify({
-        type: 'negative',
-        message: '刪除缺陷記錄失敗',
-        position: 'top'
-      });
+      await updatePendingSyncCount();
     }
   });
 };
@@ -805,42 +1097,32 @@ const handleSave = async () => {
 
   saving.value = true;
   try {
-    const inspectionData: Inspection = {
-      id: currentInspection.value?.id || crypto.randomUUID(),
-      roll_id: currentRoll.value.id,
-      inspector_name: 'Inspector Name', // TODO: 從使用者設定取得
-      ...specForm.value,
-      ...qualityForm.value,
-      remark: '', // TODO: 加入備註欄位
-      finished: false,
-      inspection_started_at: currentInspection.value?.inspection_started_at || new Date().toISOString(),
-      inspection_finished_at: undefined,
-      created_at: currentInspection.value?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      rowversion: (currentInspection.value?.rowversion || 0) + 1,
-      _dirty: true
-    };
+    const result = await saveInspection(
+      currentRoll.value.id,
+      specForm.value,
+      qualityForm.value,
+      currentInspection.value || undefined
+    );
 
-    // 儲存到本地資料庫
-    await db.inspections.put(inspectionData);
-    
-    // 加入同步佇列
-    await addToOutbox('inspections', 'upsert', inspectionData.id, inspectionData);
-    
-    // 更新本地狀態
-    currentInspection.value = inspectionData;
-    setCurrentInspection(inspectionData);
+    if (result) {
+      currentInspection.value = result;
+      setCurrentInspection(result);
 
-    $q.notify({
-      type: 'positive',
-      message: '檢驗記錄已儲存',
-      position: 'top'
-    });
+      $q.notify({
+        type: 'positive',
+        message: '檢驗記錄已儲存',
+        position: 'top',
+        icon: 'check',
+        timeout: 1500
+      });
+      
+      await updatePendingSyncCount();
+    }
   } catch (error) {
-    console.error('Error saving inspection:', error);
+    console.error('Error saving:', error);
     $q.notify({
       type: 'negative',
-      message: '儲存檢驗記錄失敗',
+      message: '儲存失敗',
       position: 'top'
     });
   } finally {
@@ -849,51 +1131,51 @@ const handleSave = async () => {
 };
 
 const handleCancel = () => {
-  void router.push('/');
+  $q.dialog({
+    title: '確認取消',
+    message: '未儲存的變更將會遺失，確定要取消嗎？',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    void router.push('/');
+  });
 };
 
-const handleRollFinish = async () => {
-  if (!currentRoll.value || !currentInspection.value) return;
+const handleRollFinish = () => {
+  if (!currentRoll.value || !currentInspection.value) {
+    $q.notify({
+      type: 'warning',
+      message: '請先儲存檢驗記錄',
+      position: 'top'
+    });
+    return;
+  }
 
   $q.dialog({
     title: '確認完成',
-    message: '確定要完成這個布捲的檢驗嗎？',
+    message: '確定要完成這個布捲的檢驗嗎？完成後將無法修改。',
     cancel: true,
     persistent: true
   }).onOk(async () => {
     finishing.value = true;
     try {
-      // 更新檢驗記錄為完成狀態
-      const finishedInspection = {
-        ...currentInspection.value,
-        finished: true,
-        inspection_finished_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        rowversion: currentInspection.value.rowversion + 1,
-        _dirty: true
-      };
+      const ok = await finishInspection(currentInspection.value!);
+      if (ok) {
+        await updateRollStatus(currentRoll.value!.id, 'completed');
+        
+        $q.notify({
+          type: 'positive',
+          message: '布捲檢驗已完成',
+          position: 'top',
+          icon: 'check_circle'
+        });
 
-      await db.inspections.put(finishedInspection);
-      await addToOutbox('inspections', 'upsert', finishedInspection.id, finishedInspection);
-
-      // 更新布捲狀態
-      const updatedRoll = {
-        ...currentRoll.value,
-        status: 'completed' as const,
-        updated_at: new Date().toISOString(),
-        _dirty: true
-      };
-
-      await db.rolls.put(updatedRoll);
-      await addToOutbox('rolls', 'upsert', updatedRoll.id, updatedRoll);
-
-      $q.notify({
-        type: 'positive',
-        message: '布捲檢驗已完成',
-        position: 'top'
-      });
-
-      router.push('/');
+        await updatePendingSyncCount();
+        
+        setTimeout(() => {
+          void router.push('/');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error finishing roll:', error);
       $q.notify({
@@ -908,75 +1190,135 @@ const handleRollFinish = async () => {
 };
 
 const handleBack = () => {
-  void router.push('/');
-};
-
-const getDefectCodeDescription = (defectCodeId: string) => {
-  const code = defectCodes.value.find(c => c.id === defectCodeId);
-  return code ? code.description_zh || code.description_en || code.description_kh : '';
-};
-
-const getDefectLevelColor = (level: number) => {
-  switch (level) {
-    case 1: return 'positive';
-    case 2: return 'warning';
-    case 3: return 'negative';
-    case 4: return 'negative';
-    case 5: return 'negative';
-    default: return 'grey';
+  if (currentInspection.value?._dirty) {
+    $q.dialog({
+      title: '未儲存的變更',
+      message: '有未儲存的變更，確定要離開嗎？',
+      cancel: true,
+      persistent: true
+    }).onOk(() => {
+      void router.push('/');
+    });
+  } else {
+    void router.push('/');
   }
 };
 
+const getDiffColor = (diffStr: string) => {
+  const diff = parseFloat(diffStr);
+  if (Math.abs(diff) <= 2) return 'green-1';
+  if (Math.abs(diff) <= 5) return 'yellow-2';
+  return 'red-2';
+};
+
+const getDefectLevelColor = (level: number) => {
+  if (level <= 2) return 'positive';
+  if (level <= 3) return 'warning';
+  return 'negative';
+};
+
 // 生命週期
-onMounted(() => { void loadRollData(); });
+onMounted(() => {
+  void loadRollData();
+});
 </script>
 
 <style scoped>
 .inspection-page {
   background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 100px;
 }
 
 .header-section {
-  background-color: white;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  color: #1976d2;
 }
 
 .spec-check-card,
 .quality-check-card,
 .defect-record-card,
 .keypad-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.spec-group {
+  padding: 12px;
+  background: #fafafa;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-left: 4px solid #1976d2;
+}
+
+.sticky-keypad {
+  position: sticky;
+  top: 20px;
 }
 
 .keypad-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .keypad-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .keypad-btn {
   flex: 1;
-  min-height: 60px;
-  font-size: 18px;
+  min-height: 70px;
+  font-size: 22px;
   font-weight: bold;
+  border-radius: 8px;
 }
 
 .bottom-actions {
-  background-color: white;
-  border-top: 1px solid #e0e0e0;
-  position: sticky;
+  border-top: 2px solid #e0e0e0;
+  position: fixed;
   bottom: 0;
-  z-index: 1000;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
 
 .defect-list {
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
+}
+
+/* 數字鍵盤輸入欄位樣式 */
+.keypad-input.q-field--focused :deep(.q-field__control) {
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.3);
+  background-color: #e3f2fd;
+}
+
+.keypad-input :deep(.q-field__append) {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .sticky-keypad {
+    position: static;
+  }
+  
+  .bottom-actions {
+    padding: 8px !important;
+  }
+  
+  .bottom-actions .row {
+    flex-wrap: wrap;
+  }
+  
+  .bottom-actions .q-btn {
+    margin: 4px;
+  }
 }
 </style>

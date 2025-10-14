@@ -56,44 +56,45 @@ export function useAppState() {
   // 執行自動同步
   const performAutoSync = async () => {
     if (!appState.value.isOnline) {
-      console.log('Offline, skipping auto sync');
+      console.log('📴 Offline, skipping auto sync');
       return;
     }
 
     try {
-      console.log('Performing auto sync...');
-      const { pushSuccess, pullSuccess } = await performFullSync(appState.value.lastSyncAt);
+      console.log('🔄 Performing auto sync...');
+      const result = await performFullSync(appState.value.lastSyncAt);
       
-      if (pushSuccess && pullSuccess) {
+      if (result.pushSuccess && result.pullSuccess) {
         appState.value.lastSyncAt = new Date().toISOString();
         await updatePendingSyncCount();
-        console.log('Auto sync completed successfully');
+        console.log('✓ Auto sync completed successfully');
       } else {
-        console.log('Auto sync completed with some failures');
+        console.log('⚠ Auto sync completed with some failures');
       }
     } catch (error) {
-      console.error('Auto sync failed:', error);
+      console.error('❌ Auto sync failed:', error);
     }
   };
 
   // 手動同步
-  const performManualSync = async (): Promise<boolean> => {
+  const performManualSync = async (): Promise<{ success: boolean; message: string }> => {
     try {
-      console.log('Performing manual sync...');
-      const { pushSuccess, pullSuccess } = await performFullSync(appState.value.lastSyncAt);
+      console.log('🔄 Performing manual sync...');
+      const result = await performFullSync(appState.value.lastSyncAt);
       
-      if (pushSuccess && pullSuccess) {
+      if (result.pushSuccess && result.pullSuccess) {
         appState.value.lastSyncAt = new Date().toISOString();
         await updatePendingSyncCount();
-        console.log('Manual sync completed successfully');
-        return true;
+        console.log('✓ Manual sync completed successfully');
+        return { success: true, message: '同步完成' };
       } else {
-        console.log('Manual sync completed with some failures');
-        return false;
+        console.log('⚠ Manual sync completed with some failures');
+        await updatePendingSyncCount();
+        return { success: false, message: '同步部分失敗，請稍後重試' };
       }
-    } catch (error) {
-      console.error('Manual sync failed:', error);
-      return false;
+    } catch (error: any) {
+      console.error('❌ Manual sync failed:', error);
+      return { success: false, message: error?.message || '同步失敗' };
     }
   };
 
@@ -106,12 +107,12 @@ export function useAppState() {
       // 更新待同步數量
       await updatePendingSyncCount();
       
-      // 設定定時同步（每 60 秒）
+      // 設定定時同步（每 10 秒）
       syncTimer = setInterval(() => {
         if (appState.value.isOnline) {
           void performAutoSync();
         }
-      }, 30000);
+      }, 10000); // 10 秒更即時
       
       console.log('App state initialized');
     } catch (error) {

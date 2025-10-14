@@ -39,21 +39,24 @@ export async function addToOutbox(
         if (ok.updated_at) {
           await updateLocalDataAfterSync(outboxItem, ok.updated_at as string);
         }
-        console.log('Immediate push succeeded for', outboxItem.clientMutationId);
+        console.log('✓ Immediate push succeeded:', outboxItem.entity, outboxItem.op);
       } else {
-        console.warn('Immediate push did not confirm success; item stays in outbox');
+        const err = result?.results?.find(r => r.clientMutationId === outboxItem.clientMutationId)?.error;
+        console.warn('⚠ Immediate push failed:', err || 'unknown', '- will retry later');
       }
-    } catch (e) {
-      console.warn('Immediate push failed, will retry later:', e);
+    } catch (e: any) {
+      console.warn('⚠ Immediate push error:', e?.message || e, '- will retry later');
     }
+  } else {
+    console.log('📴 Offline - added to outbox:', outboxItem.entity, outboxItem.op);
   }
 }
 
 // 執行同步推送
-export async function performSyncPush(): Promise<boolean> {
+export async function performSyncPush(): Promise<{ success: boolean; synced: number; failed: number; errors: string[] }> {
   if (!isOnline()) {
-    console.log('Offline, skipping sync push');
-    return false;
+    console.log('📴 Offline, skipping sync push');
+    return { success: false, synced: 0, failed: 0, errors: ['網路離線'] };
   }
 
   try {
@@ -61,17 +64,20 @@ export async function performSyncPush(): Promise<boolean> {
     const outboxItems = await db.outbox.toArray();
     
     if (outboxItems.length === 0) {
-      console.log('No items to sync');
-      return true;
+      console.log('✓ No items to sync');
+      return { success: true, synced: 0, failed: 0, errors: [] };
     }
 
-    console.log(`Syncing ${outboxItems.length} items`);
+    console.log(`🔄 Syncing ${outboxItems.length} items...`);
 
     const request: SyncPushRequest = {
       mutations: outboxItems
     };
 
     const response = await syncPush(request);
+    let syncedCount = 0;
+    let failedCount = 0;
+    const errors: string[] = [];
 
     // 處理同步結果
     for (const result of response.results) {
@@ -86,15 +92,19 @@ export async function performSyncPush(): Promise<boolean> {
             await updateLocalDataAfterSync(outboxItem, result.updated_at);
           }
         }
+        syncedCount++;
       } else {
-        console.error('Sync failed for item:', result.clientMutationId, result.error);
+        console.error('❌ Sync failed for item:', result.clientMutationId, result.error);
+        failedCount++;
+        if (result.error) errors.push(result.error);
       }
     }
 
-    return true;
-  } catch (error) {
-    console.error('Sync push failed:', error);
-    return false;
+    console.log(`✓ Sync push completed: ${syncedCount} synced, ${failedCount} failed`);
+    return { success: failedCount === 0, synced: syncedCount, failed: failedCount, errors };
+  } catch (error: any) {
+    console.error('❌ Sync push failed:', error);
+    return { success: false, synced: 0, failed: 0, errors: [error?.message || 'Unknown error'] };
   }
 }
 
