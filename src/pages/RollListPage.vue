@@ -503,8 +503,10 @@ const handleClearBarcode = () => {
   barcodeInput.value = '';
 };
 
+
 const handleBarcodeSearch = async () => {
   if (!barcodeInput.value.trim()) return;
+  
   
   searching.value = true;
   try {
