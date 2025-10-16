@@ -32,143 +32,144 @@
         <q-card class="spec-check-card q-mb-md shadow-2">
           <q-card-section>
             <div class="section-title q-mb-md">
-              <q-icon name="straighten" size="sm" class="q-mr-sm" />
-              <span class="text-h6">Spec Check</span>
+              <span class="text-h6">Specification Check</span>
             </div>
             
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-checkbox v-model="shortageCheck" label="Shortage Check" color="primary" />
-              </div>
-            </div>
+            
 
-            <!-- 重量檢查 -->
-            <div class="spec-group q-mt-md">
-              <div class="text-subtitle2 text-grey-8 q-mb-sm">Weight (KGS)</div>
-              <div class="row q-col-gutter-md">
-                <div class="col-md-4 col-sm-6 col-xs-12">
+            <!-- Spec Check 規格檢查表 -->
+            <div class="spec-check-grid">
+              <!-- 表頭 -->
+              <div class="spec-header">
+                <div class="spec-header-item spec-item-label">
+                  <span class="text-weight-medium">檢查項目</span>
+                </div>
+                <div class="spec-header-item spec-item-standard">
+                  <q-icon name="assignment" size="sm" class="q-mr-xs" />
+                  <span class="text-weight-medium">標準值</span>
+                </div>
+                <div class="spec-header-item spec-item-checked">
+                  <q-icon name="edit" size="sm" class="q-mr-xs" />
+                  <span class="text-weight-medium">實測值</span>
+                </div>
+                <div class="spec-header-item spec-item-diff">
+                  <q-icon name="trending_up" size="sm" class="q-mr-xs" />
+                  <span class="text-weight-medium">差異%</span>
+                </div>
+              </div>
+
+              <!-- 重量檢查 -->
+              <div class="spec-row">
+                <div class="spec-item spec-item-label">
+                  <div class="spec-item-content">
+                    <q-icon name="scale" size="md" class="q-mr-sm text-primary" />
+                    <div>
+                      <div class="text-weight-medium">Weight (KGS)</div>
+                      <div class="text-caption text-grey-6"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="spec-item spec-item-standard">
                   <q-input
                     v-model.number="specForm.standard_weight"
-                    label="Standard"
                     outlined
                     dense
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('standard_weight', 'spec')"
-                    class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('standard_weight', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                    class="keypad-input spec-input-no-border"
+                  />
                 </div>
-                <div class="col-md-4 col-sm-6 col-xs-12">
+                <div class="spec-item spec-item-checked">
                   <q-input
                     v-model.number="specForm.checked_weight"
-                    label="Checked"
                     outlined
                     dense
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('checked_weight', 'spec')"
-                    class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('checked_weight', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                    class="keypad-input spec-input-no-border"
+                  />
                 </div>
-                <div class="col-md-4 col-sm-6 col-xs-12">
+                <div class="spec-item spec-item-diff">
                   <q-input
-                    :model-value="weightDiff"
-                    label="Diff %"
+                    :model-value="`${weightDiff}%`"
                     outlined
                     dense
                     readonly
                     :bg-color="getDiffColor(weightDiff)"
-                  />
+                    :color="weightDiff > 0 ? 'positive' : weightDiff < 0 ? 'negative' : 'grey'"
+                    
+                  >
+                    <template v-slot:prepend>
+                      <q-icon 
+                        :name="weightDiff > 0 ? 'trending_up' : weightDiff < 0 ? 'trending_down' : 'remove'" 
+                        :color="weightDiff > 0 ? 'positive' : weightDiff < 0 ? 'negative' : 'grey'"
+                        size="sm"
+                        
+                      />
+                    </template>
+                  </q-input>
                 </div>
               </div>
-            </div>
 
-            <!-- 長度檢查 -->
-            <div class="spec-group q-mt-md">
-              <div class="text-subtitle2 text-grey-8 q-mb-sm">Length (YARDS)</div>
-              <div class="row q-col-gutter-md">
-                <div class="col-md-4 col-sm-6 col-xs-12">
+              <!-- 長度檢查 -->
+              <div class="spec-row">
+                <div class="spec-item spec-item-label">
+                  <div class="spec-item-content">
+                    <q-icon name="straighten" size="md" class="q-mr-sm text-primary" />
+                    <div>
+                      <div class="text-weight-medium">Length (YARDS)</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="spec-item spec-item-standard">
                   <q-input
                     v-model.number="specForm.standard_length"
-                    label="Standard"
                     outlined
                     dense
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('standard_length', 'spec')"
-                    class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('standard_length', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                    class="keypad-input spec-input-no-border"
+                  />
                 </div>
-                <div class="col-md-4 col-sm-6 col-xs-12">
+                <div class="spec-item spec-item-checked">
                   <q-input
                     v-model.number="specForm.checked_length"
-                    label="Checked"
                     outlined
                     dense
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('checked_length', 'spec')"
-                    class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('checked_length', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                    class="keypad-input spec-input-no-border"
+                  />
                 </div>
-                <div class="col-md-4 col-sm-6 col-xs-12">
+                <div class="spec-item spec-item-diff">
                   <q-input
-                    :model-value="lengthDiff"
-                    label="Diff %"
+                    :model-value="`${lengthDiff}%`"
                     outlined
                     dense
                     readonly
                     :bg-color="getDiffColor(lengthDiff)"
-                  />
+                    :color="lengthDiff > 0 ? 'positive' : lengthDiff < 0 ? 'negative' : 'grey'"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon 
+                        :name="lengthDiff > 0 ? 'trending_up' : lengthDiff < 0 ? 'trending_down' : 'remove'" 
+                        :color="lengthDiff > 0 ? 'positive' : lengthDiff < 0 ? 'negative' : 'grey'"
+                        size="sm"
+                      />
+                    </template>
+                  </q-input>
                 </div>
               </div>
             </div>
 
-            <!-- 寬度與其他 -->
-            <div class="spec-group q-mt-md">
-              <div class="text-subtitle2 text-grey-8 q-mb-sm">Width & Others</div>
+            <!-- 其他規格項目 -->
+            <div class="q-mt-md">
               <div class="row q-col-gutter-md">
-                <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.ticket_full_width"
                     label="Ticket Full Width"
@@ -178,19 +179,9 @@
                     step="0.01"
                     @focus="handleFieldFocus('ticket_full_width', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('ticket_full_width', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
-                <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.actual_full_width"
                     label="Actual Full Width"
@@ -200,19 +191,9 @@
                     step="0.01"
                     @focus="handleFieldFocus('actual_full_width', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('actual_full_width', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
-                <div class="col-md-3 col-sm-6 col-xs-12">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.ticket_cut_width"
                     label="Ticket Cut Width"
@@ -222,19 +203,11 @@
                     step="0.01"
                     @focus="handleFieldFocus('ticket_cut_width', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('ticket_cut_width', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
-                <div class="col-md-3 col-sm-6 col-xs-12">
+              </div>
+              <div class="row q-col-gutter-md q-mt-sm">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.moisture"
                     label="Moisture %"
@@ -244,21 +217,9 @@
                     step="0.01"
                     @focus="handleFieldFocus('moisture', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('moisture', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
-              </div>
-              <div class="row q-col-gutter-md q-mt-sm">
-                <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.skew_width"
                     label="Skew Width"
@@ -268,19 +229,9 @@
                     step="0.01"
                     @focus="handleFieldFocus('skew_width', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('skew_width', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
-                <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="col-md-4 col-sm-6 col-xs-12">
                   <q-input
                     v-model.number="specForm.skew_height"
                     label="Skew Height"
@@ -290,271 +241,270 @@
                     step="0.01"
                     @focus="handleFieldFocus('skew_height', 'spec')"
                     class="keypad-input"
-                  >
-                    <template v-slot:append>
-                      <q-icon 
-                        name="dialpad" 
-                        color="primary" 
-                        size="xs"
-                        class="cursor-pointer"
-                        @click="handleFieldFocus('skew_height', 'spec')"
-                      />
-                    </template>
-                  </q-input>
+                  />
                 </div>
               </div>
             </div>
           </q-card-section>
         </q-card>
 
-        <!-- Quality Check 區塊 -->
-        <q-card class="quality-check-card q-mb-md shadow-2">
+        <!-- Quality Check & Defect Record 合併區塊 -->
+        <q-card class="quality-defect-card q-mb-md shadow-2">
           <q-card-section>
-            <div class="section-title q-mb-md">
-              <q-icon name="verified" size="sm" class="q-mr-sm" />
-              <span class="text-h6">Quality Check</span>
-            </div>
-            
-            <div class="row q-col-gutter-md">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.appearance"
-                  :options="passFailOptions"
-                  label="Appearance"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'"
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.appearance === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
+            <!-- 標題行 -->
+            <div class="row q-mb-md">
+              <div class="col-6">
+                <div class="section-title">
+                  <span class="text-h6">Quality Check</span>
+                </div>
               </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.hand_feel"
-                  :options="passFailOptions"
-                  label="Hand-Feel"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.hand_feel === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.hand_feel === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.slant_issue"
-                  :options="passFailOptions"
-                  label="Slant Issue"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.slant_issue === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.slant_issue === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
+              <div class="col-6">
+                <div class="section-title">
+                  <q-icon name="bug_report" size="sm" class="q-mr-sm" />
+                  <span class="text-h6">Defect Record</span>
+                  <q-chip v-if="defectsList.length > 0" color="negative" text-color="white" size="sm" class="q-ml-sm">
+                    {{ defectsList.length }} 筆缺陷
+                  </q-chip>
+                </div>
               </div>
             </div>
 
-            <div class="row q-col-gutter-md q-mt-sm">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.color_shade"
-                  :options="passFailOptions"
-                  label="Color Shade"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.color_shade === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.color_shade === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.specification_issue"
-                  :options="passFailOptions"
-                  label="Specification"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.specification_issue === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.specification_issue === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.approved_sample"
-                  :options="yesNoOptions"
-                  label="Approved Sample"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.approved_sample === 'yes' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.approved_sample === 'yes' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-            </div>
+            <!-- 內容行 -->
+            <div class="row q-col-gutter-lg">
+              <!-- Quality Check 左側 -->
+              <div class="col-md-6 col-12">
+                <div class="quality-check-grid">
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.appearance"
+                        :options="passFailOptions"
+                        label="Appearance"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                        :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'"
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.appearance === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.hand_feel"
+                        :options="passFailOptions"
+                        label="Hand-Feel"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.hand_feel === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.hand_feel === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                  </div>
 
-            <div class="row q-col-gutter-md q-mt-sm">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.sticker"
-                  :options="passFailOptions"
-                  label="Sticker"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.sticker === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.sticker === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="qualityForm.packing"
-                  :options="passFailOptions"
-                  label="Packing"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                >
-                  <template v-slot:prepend>
-                    <q-icon :name="qualityForm.packing === 'pass' ? 'check_circle' : 'cancel'" 
-                            :color="qualityForm.packing === 'pass' ? 'positive' : 'negative'" />
-                  </template>
-                </q-select>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.slant_issue"
+                        :options="passFailOptions"
+                        label="Slant Issue"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.slant_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.slant_issue === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.color_shade"
+                        :options="passFailOptions"
+                        label="Color Shade"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.color_shade === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.color_shade === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                  </div>
 
-        <!-- Defect Record 區塊 -->
-        <q-card class="defect-record-card shadow-2">
-          <q-card-section>
-            <div class="section-title q-mb-md">
-              <q-icon name="bug_report" size="sm" class="q-mr-sm" />
-              <span class="text-h6">Defect Record</span>
-              <q-chip v-if="defectsList.length > 0" color="negative" text-color="white" size="sm" class="q-ml-sm">
-                {{ defectsList.length }} 筆缺陷
-              </q-chip>
-            </div>
-            
-            <div class="row q-col-gutter-md">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="selectedCategory"
-                  :options="categoryOptions"
-                  label="Issue Category"
-                  outlined
-                  dense
-                  @update:model-value="onCategoryChange"
-                />
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model="defectForm.defect_code_id"
-                  :options="filteredDefectCodes"
-                  label="Defect Code"
-                  outlined
-                  dense
-                  option-value="id"
-                  :option-label="opt => opt.description_zh || opt.description_en || opt.code"
-                  emit-value
-                  map-options
-                  :disable="!selectedCategory"
-                >
-                  <template v-slot:option="scope">
-                    <q-item v-bind="scope.itemProps">
-                      <q-item-section>
-                        <q-item-label>{{ scope.opt.description_zh || scope.opt.description_en }}</q-item-label>
-                        <q-item-label caption>{{ scope.opt.code }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-input
-                  v-model="defectForm.remark"
-                  label="Remark"
-                  outlined
-                  dense
-                />
-              </div>
-            </div>
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.specification_issue"
+                        :options="passFailOptions"
+                        label="Specification"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.specification_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.specification_issue === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.approved_sample"
+                        :options="yesNoOptions"
+                        label="Approved Sample"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.approved_sample === 'yes' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.approved_sample === 'yes' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                  </div>
 
-            <div class="row q-col-gutter-md q-mt-sm">
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-input
-                  ref="positionInput"
-                  v-model.number="defectForm.position_yard"
-                  label="Position (Yard)"
-                  outlined
-                  dense
-                  type="number"
-                  step="0.01"
-                  @focus="handleFieldFocus('position_yard', 'defect')"
-                  class="keypad-input"
-                >
-                  <template v-slot:append>
-                    <q-icon 
-                      name="dialpad" 
-                      color="primary" 
-                      size="xs"
-                      class="cursor-pointer"
-                      @click="handleFieldFocus('position_yard', 'defect')"
-                    />
-                  </template>
-                </q-input>
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.sticker"
+                        :options="passFailOptions"
+                        label="Sticker"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.sticker === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.sticker === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                    <div class="col-6">
+                      <q-select
+                        v-model="qualityForm.packing"
+                        :options="passFailOptions"
+                        label="Packing"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      >
+                        <template v-slot:prepend>
+                          <q-icon :name="qualityForm.packing === 'pass' ? 'check_circle' : 'cancel'" 
+                                  :color="qualityForm.packing === 'pass' ? 'positive' : 'negative'" />
+                        </template>
+                      </q-select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-select
-                  v-model.number="defectForm.level"
-                  :options="[1, 2, 3, 4, 5]"
-                  label="Severity Level"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                />
-              </div>
-              <div class="col-md-4 col-sm-6 col-xs-12">
-                <q-btn 
-                  color="primary" 
-                  label="ADD"
-                  icon="add"
-                  @click="handleAddDefect"
-                  :disable="!canAddDefect"
-                  class="full-width"
-                  style="height: 40px"
-                />
+
+              <!-- Defect Record 右側 -->
+              <div class="col-md-6 col-12">
+                <div class="defect-record-grid">
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model="selectedCategory"
+                        :options="categoryOptions"
+                        label="Issue Category"
+                        outlined
+                        dense
+                        @update:model-value="onCategoryChange"
+                      />
+                    </div>
+                    <div class="col-6">
+                      <q-select
+                        v-model="defectForm.defect_code_id"
+                        :options="filteredDefectCodes"
+                        label="Defect Code"
+                        outlined
+                        dense
+                        option-value="id"
+                        :option-label="opt => opt.description_zh || opt.description_en || opt.code"
+                        emit-value
+                        map-options
+                        :disable="!selectedCategory"
+                      >
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps">
+                            <q-item-section>
+                              <q-item-label>{{ scope.opt.description_zh || scope.opt.description_en }}</q-item-label>
+                              <q-item-label caption>{{ scope.opt.code }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                    </div>
+                  </div>
+
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <q-input
+                        v-model="defectForm.remark"
+                        label="Remark"
+                        outlined
+                        dense
+                      />
+                    </div>
+                    <div class="col-6">
+                      <q-input
+                        ref="positionInput"
+                        v-model.number="defectForm.position_yard"
+                        label="Position (Yard)"
+                        outlined
+                        dense
+                        type="number"
+                        step="0.01"
+                        @focus="handleFieldFocus('position_yard', 'defect')"
+                        class="keypad-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <q-select
+                        v-model.number="defectForm.level"
+                        :options="[1, 2, 3, 4, 5]"
+                        label="Severity Level"
+                        outlined
+                        dense
+                        emit-value
+                        map-options
+                      />
+                    </div>
+                    <div class="col-6">
+                      <q-btn 
+                        color="primary" 
+                        label="ADD"
+                        icon="add"
+                        @click="handleAddDefect"
+                        :disable="!canAddDefect"
+                        class="full-width"
+                        style="height: 40px"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -633,7 +583,7 @@
                 />
               </div>
             </div>
-            <div class="text-caption text-grey-7 q-mt-sm text-center">
+            <div class="text-caption text-grey-8 q-mt-sm text-center">
               <div v-if="focusedField" class="text-primary text-weight-medium">
                 當前輸入: {{ getFieldLabel(focusedField) }}
               </div>
@@ -792,6 +742,7 @@ const keypadLayout = [
   ['7', '8', '9'],
   ['.', '0', 'Back']
 ];
+
 
 // 計算屬性
 const categoryOptions = computed(() => {
@@ -1286,6 +1237,124 @@ onMounted(() => {
   cursor: pointer;
 }
 
+/* Spec Check 網格樣式 */
+.spec-check-grid {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+/* 無框輸入框樣式 */
+.spec-input-no-border :deep(.q-field__control) {
+  border: none !important;
+  box-shadow: none !important;
+  background: #f5f5f5 !important;
+  border-radius: 4px;
+}
+
+.spec-input-no-border :deep(.q-field__control:before) {
+  border: none !important;
+}
+
+.spec-input-no-border :deep(.q-field__control:after) {
+  border: none !important;
+}
+
+.spec-input-no-border :deep(.q-field__control:hover) {
+  border: none !important;
+  box-shadow: none !important;
+  background: #eeeeee !important;
+}
+
+.spec-input-no-border :deep(.q-field--focused .q-field__control) {
+  border: none !important;
+  box-shadow: none !important;
+  background: #e8f5e8 !important;
+}
+
+.spec-input-no-border :deep(.q-field__native) {
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 500;
+  background: transparent;
+}
+
+.spec-input-no-border :deep(.q-field__label) {
+  display: none;
+}
+
+.spec-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.spec-header-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #424242;
+  border-right: 1px solid #e0e0e0;
+}
+
+.spec-header-item:last-child {
+  border-right: none;
+}
+
+.spec-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.spec-row:last-child {
+  border-bottom: none;
+}
+
+.spec-item {
+  padding: 16px;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+}
+
+.spec-item:last-child {
+  border-right: none;
+}
+
+.spec-item-label {
+  background: #fafafa;
+  font-weight: 500;
+}
+
+.spec-item-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.spec-item-standard,
+.spec-item-checked,
+.spec-item-diff {
+  justify-content: center;
+}
+
+.spec-item-standard :deep(.q-field),
+.spec-item-checked :deep(.q-field),
+.spec-item-diff :deep(.q-field) {
+  margin-bottom: 0;
+}
+
+.spec-item-standard :deep(.q-field__control),
+.spec-item-checked :deep(.q-field__control),
+.spec-item-diff :deep(.q-field__control) {
+  min-height: 40px;
+}
+
+
 @media (max-width: 768px) {
   .sticky-keypad {
     position: static;
@@ -1301,6 +1370,11 @@ onMounted(() => {
   
   .bottom-actions .q-btn {
     margin: 4px;
+  }
+  
+  .quality-check-grid,
+  .defect-record-grid {
+    padding: 12px;
   }
 }
 </style>
