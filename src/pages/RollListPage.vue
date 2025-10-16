@@ -41,7 +41,7 @@
     <!-- 條碼輸入區 -->
     <div class="barcode-section q-pa-md">
       <div class="text-h6 q-mb-md">布捲資訊</div>
-      <div class="text-h8 q-mb-md">Barcode測試資料:(F)90000492301 - (F)90000492310</div>
+      <div class="text-h8 q-mb-md">Barcode測試資料:BC001 - BC003</div>
 
       
       <div class="row q-gutter-md">

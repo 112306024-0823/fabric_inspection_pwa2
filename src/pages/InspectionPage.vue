@@ -619,10 +619,7 @@
       <div class="col-md-4 col-sm-12">
         <q-card class="keypad-card shadow-2 sticky-keypad">
           <q-card-section>
-            <div class="section-title q-mb-md">
-              <q-icon name="dialpad" size="sm" class="q-mr-sm" />
-              <span class="text-h6">數字鍵盤</span>
-            </div>
+            
             <div class="keypad-grid">
               <div class="keypad-row" v-for="(row, rowIndex) in keypadLayout" :key="rowIndex">
                 <q-btn
@@ -695,20 +692,8 @@
             />
           </div>
         </div>
-        <div class="col-auto">
-          <q-select
-            v-model="selectedLanguage"
-            :options="languageOptions"
-            outlined
-            dense
-            style="min-width: 100px"
-          >
-            <template v-slot:prepend>
-              <q-icon name="language" />
-            </template>
-          </q-select>
-        </div>
-      </div>
+        
+      </div>  
     </div>
   </q-page>
 </template>
@@ -793,11 +778,8 @@ const yesNoOptions = [
   { label: 'Yes', value: 'yes' },
   { label: 'No', value: 'no' }
 ];
-const languageOptions = [
-  { label: 'English', value: 'EN' },
 
-];
-const selectedLanguage = ref({ label: '柬埔寨語', value: 'CAB' });
+
 
 // 狀態
 const saving = ref(false);

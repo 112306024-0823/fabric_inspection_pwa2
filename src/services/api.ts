@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from './sqlserver';
 import type { Roll, Inspection, Defect, DefectCode, SyncPushRequest, SyncPushResponse, SyncPullRequest, SyncPullResponse } from '../types';
 
 // 取得布捲資料
@@ -66,18 +66,10 @@ export async function getInspectionByRollId(rollId: string): Promise<Inspection 
 // 取得缺陷記錄
 export async function getDefectsByRollId(rollId: string): Promise<Defect[]> {
   try {
+    // SQL Server API 已經在後端處理了 JOIN，直接獲取數據即可
     const { data, error } = await supabase
       .from('defects')
-      .select(`
-        *,
-        defect_codes (
-          category,
-          code,
-          description_zh,
-          description_en,
-          description_kh
-        )
-      `)
+      .select('*')
       .eq('roll_id', rollId)
       .order('created_at', { ascending: false });
 

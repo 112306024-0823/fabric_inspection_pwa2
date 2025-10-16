@@ -1,11 +1,11 @@
-# 🏭 Fabric Inspection PWA
+# 🏭 Fabric Inspection PWA2
 
-一個基於 **Quasar PWA + Supabase** 的現代化驗布系統，專為工業環境設計，支援離線作業和即時資料同步。
+一個基於 **Quasar PWA + SQL Server** 的現代化驗布系統，專為工業環境設計，支援離線作業和即時資料同步。
 
 ![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?style=flat&logo=vue.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript)
 ![Quasar](https://img.shields.io/badge/Quasar-2.x-1976D2?style=flat&logo=quasar)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat&logo=supabase)
+![SQL Server](https://img.shields.io/badge/SQL_Server-Microsoft-CC2927?style=flat&logo=microsoft-sql-server)
 ![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=flat&logo=pwa)
 
 ## ✨ 功能特色
@@ -15,12 +15,13 @@
 - 布捲基本資訊顯示（BL#、PO#、Style、Color、Lot、Roll#等）
 - 長度資訊管理（Total、Need Inspect、Pass Condition、Inspected）
 - 布捲狀態追蹤（pending、inspecting、completed）
+- AVG POINT 自動計算
 
 ### 🔍 檢驗作業
 - **Spec Check**: 規格檢查（重量、長度、寬度、濕度、斜度等）
 - **Quality Check**: 品質檢查（外觀、手感、顏色、包裝等）
 - **Defect Record**: 缺陷記錄（支援多語言缺陷代碼）
-- 數字鍵盤快速輸入
+- 數字鍵盤快速輸入（支援平板觸控）
 - 即時計算差異百分比
 
 ### PWA 功能
@@ -46,10 +47,10 @@
 - **Tailwind CSS**: 快速樣式開發
 
 ### 🗄️ 後端技術棧
-- **Supabase**: PostgreSQL 資料庫 + Edge Functions
-- **Row Level Security**: 資料安全控制
-- **Real-time**: 即時資料同步
-- **PostgREST**: 自動生成 RESTful API
+- **Node.js Express**: RESTful API 伺服器
+- **SQL Server**: 企業級資料庫
+- **mssql**: SQL Server 連接驅動
+- **CORS**: 跨域請求支援
 
 ### 🔄 分離式架構
 - ✅ **前後端完全分離**，可獨立部署
@@ -59,11 +60,12 @@
 
 ## 🗃️ 資料庫結構
 
-### 📊 Supabase 資料表
+### 📊 SQL Server 資料表
 - **`rolls`**: 布捲基本資訊（條碼、BL#、PO#、規格等）
 - **`inspections`**: 檢驗記錄（規格檢查、品質檢查）
 - **`defects`**: 缺陷記錄（缺陷代碼、位置、等級）
 - **`defect_codes`**: 缺陷代碼（支援中英柬三語）
+- **`sync_logs`**: 同步記錄
 
 ### 💾 IndexedDB 離線儲存
 - **`outbox`**: 待同步資料佇列
@@ -75,50 +77,51 @@
 ### 📋 環境需求
 - **Node.js**: 18+ (建議使用 20.x LTS)
 - **npm**: 6.13.4+ 或 **yarn**: 1.21.1+
-- **Supabase**: 專案帳號和 API 金鑰
+- **SQL Server**: 遠端資料庫連線
 
 ### ⚡ 安裝與啟動
 
-1. **安裝依賴**
+1. **安裝前端依賴**
 ```bash
 npm install
 ```
 
-2. **PWA 開發模式** (推薦)
+2. **後端啟動**
+```bash
+cd backend
+npm install
+```
+
+3. **配置環境變數**
+建立 `backend/.env`：
+```env
+PORT=***
+DB_SERVER=your-sql-server-ip
+DB_PORT=your-sql-server-port
+DB_NAME=your-database-name
+DB_USER=your-username
+DB_PASSWORD=your-password
+DB_ENCRYPT=false
+DB_TRUST_CERT=true
+CORS_ORIGIN=http://localhost:8080,http://127.0.0.1:8080
+```
+
+建立 `.env`（根目錄）：
+```env
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+4. **啟動後端伺服器**
+```bash
+cd backend
+node server.js
+```
+
+5. **啟動前端 PWA**
 ```bash
 npx quasar dev -m pwa
 ```
-這會啟動 PWA 開發伺服器，支援：
-- 🔥 熱重載
-- 📱 PWA 功能完整測試
-- 🌐 自動開啟瀏覽器
-- 🔧 開發者工具支援
 
-3. **一般開發模式**
-```bash
-npm run dev
-```
-
-4. **建置 PWA**
-```bash
-npm run build
-```
-
-5. **本地預覽建置結果**
-```bash
-npm run build
-npx serve dist/pwa
-```
-
-### 🔧 可用指令
-
-| 指令 | 說明 |
-|------|------|
-| `npx quasar dev -m pwa` | 🚀 PWA 開發模式（推薦） |
-| `npm run dev` | 一般開發模式 |
-| `npm run build` | 建置生產版本 |
-| `npm run lint` | 程式碼檢查 |
-| `npm run format` | 程式碼格式化 |
 
 
 ## 📖 使用流程
@@ -141,13 +144,27 @@ npx serve dist/pwa
 
 ## ⚙️ 配置說明
 
-### 🔐 Supabase 設定
-建立 `.env`（或 `.env.local`），填入：
+### 🔐 SQL Server 設定
+在 `backend/.env` 中配置資料庫連線：
 ```env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-anon-key
+DB_SERVER=*******
+DB_PORT=*******
+DB_DATABASE=*******
+DB_USER=*******
+DB_PASSWORD=*******
+
 ```
-> 💡 開發伺服器會自動讀取並注入到前端程式碼
+
+**最簡單的啟動方式：**
+```bash
+# 終端機 1: 啟動後端
+cd backend
+node server.js
+
+# 終端機 2: 啟動前端
+npx quasar dev -m pwa
+```
+
 
 ### 📱 PWA 設定
 在 `src-pwa/manifest.json` 中自訂：
@@ -158,49 +175,46 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 ## 🚀 部署
 
-### 🗄️ Supabase 部署
-1. 📝 建立 Supabase 專案
-2. 🔄 執行資料庫遷移
-3. ⚡ 部署 Edge Functions
+### 🗄️ SQL Server 部署
+1. 確保 SQL Server 可遠端連線
+2. 執行資料庫 Schema 建立
+3. 配置防火牆和網路設定
 
 ### 📱 PWA 部署
-1. 🏗️ 建置應用程式：`npm run build`
-2. 🌐 部署 `dist/pwa` 目錄到靜態網站託管服務
-3. 🔒 確保 HTTPS 支援（PWA 要求）
+1. 建置應用程式：`npm run build`
+2. 部署 `dist/pwa` 目錄到靜態網站託管服務
+3. 確保 HTTPS 支援（PWA 要求）
+
+### 🖥️ 後端部署
+1. 建置後端：`cd backend && npm install --production`
+2. 啟動服務：`node server.js`
+3. 使用 PM2 或 systemd 管理程序
 
 ## 💡 開發注意事項
 
 ### 🔄 資料同步
-- ✅ 使用 `_dirty` 標記追蹤本地變更
-- ⚖️ 使用 `rowversion` 處理衝突
-- 🔄 支援冪等操作（clientMutationId）
+- 使用 `_dirty` 標記追蹤本地變更
+- 使用 `rowversion` 處理衝突
+- 支援冪等操作（clientMutationId）
 
 ### 🌐 離線支援
-- 📱 所有 CRUD 操作都支援離線
-- 💾 使用 IndexedDB 作為主要儲存
-- 🔧 Service Worker 處理快取策略
+- 所有 CRUD 操作都支援離線
+- 使用 IndexedDB 作為主要儲存
+- Service Worker 處理快取策略
 
 ### ❌ 錯誤處理
 - 🔄 網路錯誤自動重試
 - 📦 同步失敗保留在 outbox
 - 👤 使用者友善的錯誤提示
 
-## 📄 授權
+### 📱 平板優化
+- 🎯 觸控目標最小 48px
+- ⌨️ 數字鍵盤支援平板輸入
+- 📐 響應式設計適配不同螢幕
 
-MIT License
+## 🔧 故障排除
 
-## 📞 聯絡資訊
-
-如有問題或建議，請聯絡開發團隊：
-- 📧 Email: 112306024@g.nccu.edu.tw
-- 🏫 學校: 國立政治大學
-
----
-
-<div align="center">
-
-**🏭 Fabric Inspection PWA** - 現代化驗布系統
-
-Made with ❤️ by Quasar + Vue 3 + Supabase
-
-</div>
+### 常見問題
+1. **後端連線失敗**: 檢查 SQL Server 連線設定和防火牆
+2. **同步失敗**: 檢查網路連線和後端 API 狀態
+3. **平板觸控問題**: 確認 CSS 媒體查詢設定
