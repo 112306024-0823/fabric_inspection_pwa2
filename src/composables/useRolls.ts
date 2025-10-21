@@ -128,7 +128,6 @@ export function useRolls() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         rowversion: 1,
-        _dirty: true
       };
       
       // 儲存到本地資料庫
@@ -164,7 +163,6 @@ export function useRolls() {
         ...roll,
         status,
         updated_at: new Date().toISOString(),
-        _dirty: true
       };
       
       // 更新本地資料庫
@@ -196,7 +194,6 @@ export function useRolls() {
         ...roll,
         ...changes,
         updated_at: new Date().toISOString(),
-        _dirty: true,
       };
       await db.rolls.put(updated);
       await addToOutbox('rolls', 'upsert', rollId, updated);

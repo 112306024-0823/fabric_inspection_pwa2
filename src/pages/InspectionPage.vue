@@ -4,17 +4,27 @@
     <div class="header-section q-pa-md bg-white">
       <div class="row items-center justify-between">
         <div class="col">
-          <div class="text-h5 q-mb-sm text-weight-medium">檢驗作業</div>
-          <div class="row q-gutter-md text-body2 text-grey-8">
-            <div><strong>Style:</strong> {{ currentRoll?.style }}</div>
-            <div><strong>Color:</strong> {{ currentRoll?.color }}</div>
-            <div><strong>BL#:</strong> {{ currentRoll?.bl_no }}</div>
-            <div><strong>Lot:</strong> {{ currentRoll?.lot }}</div>
-            <div><strong>Roll#:</strong> {{ currentRoll?.roll_number }}</div>
-            <div><strong>Avg Point:</strong> {{ currentRoll?.avg_points?.toFixed(2) || '0.00' }}</div>
-          </div>
-          <div class="text-body2 text-grey-7 q-mt-xs">
-            <strong>Fabric:</strong> {{ currentRoll?.fabric_description }} | <strong>Supplier:</strong> {{ currentRoll?.supplier }}
+          <div class="roll-info-compact">
+            <div class="info-row">
+              <span class="info-item"><strong>BL#:</strong> {{ currentRoll?.bl_no || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Lot:</strong> {{ currentRoll?.lot || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Roll#:</strong> {{ currentRoll?.roll_number || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Style:</strong> {{ currentRoll?.style || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Color:</strong> {{ currentRoll?.color || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Fabric:</strong> {{ currentRoll?.fabric_description || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item"><strong>Supplier:</strong> {{ currentRoll?.supplier || '-' }}</span>
+              <span class="info-separator">|</span>
+              <span class="info-item avg-points"><strong>Avg Point:</strong> 
+                <span :class="avgPointsColor">{{ currentRoll?.avg_points?.toFixed(2) || '0.00' }}</span>
+              </span>
+            </div>
+            
           </div>
         </div>
         <div class="col-auto">
@@ -256,11 +266,14 @@
               <div class="col-6">
                 <div class="section-title">
                   <span class="text-h6">Quality Check</span>
+                  <q-chip v-if="defectsList.length > 0"  text-color="grey-7" size="sm" class="q-ml-sm">
+                    click to change status
+                  </q-chip>
                 </div>
+                
               </div>
               <div class="col-6">
                 <div class="section-title">
-                  <q-icon name="bug_report" size="sm" class="q-mr-sm" />
                   <span class="text-h6">Defect Record</span>
                   <q-chip v-if="defectsList.length > 0" color="negative" text-color="white" size="sm" class="q-ml-sm">
                     {{ defectsList.length }} 筆缺陷
@@ -270,155 +283,158 @@
             </div>
 
             <!-- 內容行 -->
-            <div class="row q-col-gutter-lg">
+            <div class="quality-defect-container">
               <!-- Quality Check 左側 -->
-              <div class="col-md-6 col-12">
+               
+              <div class="quality-check-section">
                 <div class="quality-check-grid">
                   <div class="row q-col-gutter-sm">
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.appearance"
-                        :options="passFailOptions"
-                        label="Appearance"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                        :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'"
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.appearance === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('appearance')">
+                        <div class="quality-content">
+                          <span class="quality-label">Appearance</span>
+                          <div class="quality-status">
+                            <span class="status-text" :class="qualityForm.appearance === 'pass' ? 'pass' : 'fail'">
+                            </span>
+                            <q-icon 
+                              :name="qualityForm.appearance === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.appearance === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.hand_feel"
-                        :options="passFailOptions"
-                        label="Hand-Feel"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.hand_feel === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.hand_feel === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
-                    </div>
-                  </div>
-
-                  <div class="row q-col-gutter-sm q-mt-sm">
-                    <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.slant_issue"
-                        :options="passFailOptions"
-                        label="Slant Issue"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.slant_issue === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.slant_issue === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
-                    </div>
-                    <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.color_shade"
-                        :options="passFailOptions"
-                        label="Color Shade"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.color_shade === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.color_shade === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('hand_feel')">
+                        <div class="quality-content">
+                          <span class="quality-label">Hand-Feel</span>
+                          <div class="quality-status">
+                            <span class="status-text" :class="qualityForm.hand_feel === 'pass' ? 'pass' : 'fail'">
+                            </span>
+                            <q-icon 
+                              :name="qualityForm.hand_feel === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.hand_feel === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   <div class="row q-col-gutter-sm q-mt-sm">
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.specification_issue"
-                        :options="passFailOptions"
-                        label="Specification"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.specification_issue === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.specification_issue === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('slant_issue')">
+                        <div class="quality-content">
+                          <span class="quality-label">Slant Issue</span>
+                          <div class="quality-status">
+                            <span class="status-text" :class="qualityForm.slant_issue === 'pass' ? 'pass' : 'fail'">
+                            </span>
+                            <q-icon 
+                              :name="qualityForm.slant_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.slant_issue === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.approved_sample"
-                        :options="yesNoOptions"
-                        label="Approved Sample"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.approved_sample === 'yes' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.approved_sample === 'yes' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('color_shade')">
+                        <div class="quality-content">
+                          <span class="quality-label">Color Shade</span>
+                          <div class="quality-status">
+                            
+                            <q-icon 
+                              :name="qualityForm.color_shade === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.color_shade === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   <div class="row q-col-gutter-sm q-mt-sm">
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.sticker"
-                        :options="passFailOptions"
-                        label="Sticker"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.sticker === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.sticker === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('specification_issue')">
+                        <div class="quality-content">
+                          <span class="quality-label">Specification</span>
+                          <div class="quality-status">
+                            
+                            <q-icon 
+                              :name="qualityForm.specification_issue === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.specification_issue === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-6">
-                      <q-select
-                        v-model="qualityForm.packing"
-                        :options="passFailOptions"
-                        label="Packing"
-                        outlined
-                        dense
-                        emit-value
-                        map-options
-                      >
-                        <template v-slot:prepend>
-                          <q-icon :name="qualityForm.packing === 'pass' ? 'check_circle' : 'cancel'" 
-                                  :color="qualityForm.packing === 'pass' ? 'positive' : 'negative'" />
-                        </template>
-                      </q-select>
+                      <div class="quality-check-item" @click="toggleQualityCheck('approved_sample')">
+                        <div class="quality-content">
+                          <span class="quality-label">Approved Sample</span>
+                          <div class="quality-status">
+                            
+                            <q-icon 
+                              :name="qualityForm.approved_sample === 'yes' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.approved_sample === 'yes' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row q-col-gutter-sm q-mt-sm">
+                    <div class="col-6">
+                      <div class="quality-check-item" @click="toggleQualityCheck('sticker')">
+                        <div class="quality-content">
+                          <span class="quality-label">Sticker</span>
+                          <div class="quality-status">
+                            
+                            <q-icon 
+                              :name="qualityForm.sticker === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.sticker === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="quality-check-item" @click="toggleQualityCheck('packing')">
+                        <div class="quality-content">
+                          <span class="quality-label">Packing</span>
+                          <div class="quality-status">
+                           
+                            <q-icon 
+                              :name="qualityForm.packing === 'pass' ? 'check_circle' : 'cancel'" 
+                              :color="qualityForm.packing === 'pass' ? 'positive' : 'negative'"
+                              size="sm"
+                              class="status-icon"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Defect Record 右側 -->
-              <div class="col-md-6 col-12">
+              <div class="defect-record-section">
                 <div class="defect-record-grid">
                   <div class="row q-col-gutter-sm">
                     <div class="col-6">
@@ -428,6 +444,8 @@
                         label="Issue Category"
                         outlined
                         dense
+                        emit-value
+                        map-options
                         @update:model-value="onCategoryChange"
                       />
                     </div>
@@ -435,11 +453,11 @@
                       <q-select
                         v-model="defectForm.defect_code_id"
                         :options="filteredDefectCodes"
-                        label="Defect Code"
+                        label="Description"
                         outlined
                         dense
                         option-value="id"
-                        :option-label="opt => opt.description_zh || opt.description_en || opt.code"
+                        :option-label="opt => getDefectCodeDescription(opt.id, 'zh')"
                         emit-value
                         map-options
                         :disable="!selectedCategory"
@@ -447,7 +465,7 @@
                         <template v-slot:option="scope">
                           <q-item v-bind="scope.itemProps">
                             <q-item-section>
-                              <q-item-label>{{ scope.opt.description_zh || scope.opt.description_en }}</q-item-label>
+                              <q-item-label>{{ getDefectCodeDescription(scope.opt.id, 'zh') }}</q-item-label>
                               <q-item-label caption>{{ scope.opt.code }}</q-item-label>
                             </q-item-section>
                           </q-item>
@@ -746,12 +764,18 @@ const keypadLayout = [
 
 // 計算屬性
 const categoryOptions = computed(() => {
-  return Object.keys(defectCodesByCategory.value).map(cat => ({ label: cat, value: cat }));
+  const categories = Object.keys(defectCodesByCategory.value).map(cat => ({ label: cat, value: cat }));
+  console.log('🏷️ Raw defect codes:', defectCodesList.value);
+  console.log('🏷️ Category options:', categories);
+  console.log('🏷️ Defect codes by category:', defectCodesByCategory.value);
+  return categories;
 });
 
 const filteredDefectCodes = computed(() => {
   if (!selectedCategory.value) return [];
-  return defectCodesByCategory.value[selectedCategory.value] || [];
+  const filtered = defectCodesByCategory.value[selectedCategory.value] || [];
+  console.log('🔍 Filtered defect codes for category', selectedCategory.value, ':', filtered);
+  return filtered;
 });
 
 const weightDiff = computed(() => {
@@ -770,12 +794,20 @@ const canAddDefect = computed(() => {
   return defectForm.value.defect_code_id && defectForm.value.position_yard > 0;
 });
 
+// Avg Points 顏色
+const avgPointsColor = computed(() => {
+  const points = currentRoll.value?.avg_points || 0;
+  if (points <= 2) return 'text-positive';
+  if (points <= 4) return 'text-warning';
+  return 'text-negative';
+});
+
 // 表格欄位定義
 const defectColumns = [
   {
     name: 'code',
     required: true,
-    label: 'Defect Code',
+    label: 'Description',
     align: 'left',
     field: 'defect_code_id',
     sortable: false
@@ -849,7 +881,10 @@ const loadRollData = async () => {
     await loadDefectsFromLocal(rollId);
     
     // 載入缺陷代碼
+    console.log('🔄 Loading defect codes...');
     await loadDefectCodes();
+    console.log('✅ Defect codes loaded. Total:', defectCodesList.value.length);
+    console.log('📋 Defect codes data:', defectCodesList.value);
   } catch (error) {
     console.error('Error loading roll data:', error);
     $q.notify({
@@ -887,6 +922,25 @@ const loadInspectionForm = (inspection: Inspection) => {
 };
 
 const onCategoryChange = () => {
+  console.log('📂 Category changed to:', selectedCategory.value);
+  console.log('📂 Category type:', typeof selectedCategory.value);
+  console.log('📂 All available categories:', Object.keys(defectCodesByCategory.value));
+  console.log('📂 Full defectCodesByCategory:', defectCodesByCategory.value);
+  console.log('📂 Available defect codes for this category:', defectCodesByCategory.value[selectedCategory.value]);
+  
+  // 檢查是否有完全匹配的分類
+  const exactMatch = defectCodesByCategory.value[selectedCategory.value];
+  if (!exactMatch) {
+    console.warn('⚠️ No exact match found for category:', selectedCategory.value);
+    // 嘗試找到相似的分類（只有當 selectedCategory.value 是字符串時才執行）
+    if (typeof selectedCategory.value === 'string') {
+      const similarCategories = Object.keys(defectCodesByCategory.value).filter(cat => 
+        cat.includes(selectedCategory.value) || selectedCategory.value.includes(cat)
+      );
+      console.log('🔍 Similar categories found:', similarCategories);
+    }
+  }
+  
   // 清空已選的 defect code
   defectForm.value.defect_code_id = '';
 };
@@ -973,6 +1027,19 @@ const handleKeypadInput = (key: string) => {
   }
 
   console.log('✓ Keypad input:', key, '→', fieldName, '=', newValue);
+};
+
+// 切換 Quality Check 狀態
+const toggleQualityCheck = (field: keyof QualityCheckForm) => {
+  if (field === 'approved_sample') {
+    // Approved Sample 是 Yes/No 切換
+    qualityForm.value[field] = qualityForm.value[field] === 'yes' ? 'no' : 'yes';
+  } else {
+    // 其他欄位是 Pass/Fail 切換
+    qualityForm.value[field] = qualityForm.value[field] === 'pass' ? 'fail' : 'pass';
+  }
+  
+  console.log(` Quality check toggled: ${field} = ${qualityForm.value[field]}`);
 };
 
 const handleAddDefect = async () => {
@@ -1157,11 +1224,74 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.inspection-page {
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  padding-bottom: 100px;
-}
+  .inspection-page {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+
+  /* 簡潔的 Roll 資訊顯示 */
+  .roll-info-compact {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .info-item {
+    white-space: nowrap;
+  }
+
+  .info-item strong {
+    color: #1976d2;
+    font-weight: 600;
+  }
+
+  .info-separator {
+    color: #bdbdbd;
+    font-weight: 300;
+    margin: 0 4px;
+  }
+
+  .avg-points strong {
+    color: #1976d2;
+  }
+
+  .fabric-info {
+    color: #666;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .fabric-info strong {
+    color: #1976d2;
+    font-weight: 600;
+  }
+
+  /* 響應式調整 */
+  @media (max-width: 768px) {
+    .roll-info-compact {
+      font-size: 13px;
+    }
+    
+    .info-row {
+      gap: 6px;
+    }
+    
+    .info-separator {
+      margin: 0 2px;
+    }
+    
+    .fabric-info {
+      font-size: 12px;
+    }
+  }
 
 .header-section {
   border-bottom: 2px solid #e0e0e0;
@@ -1375,6 +1505,148 @@ onMounted(() => {
   .quality-check-grid,
   .defect-record-grid {
     padding: 12px;
+  }
+}
+
+/* Quality Check 和 Defect Record 左右兩欄佈局 */
+.quality-defect-container {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+
+.quality-check-section {
+  flex: 1;
+  min-width: 0; /* 防止 flex 項目溢出 */
+}
+
+.defect-record-section {
+  flex: 1;
+  min-width: 0; /* 防止 flex 項目溢出 */
+}
+
+/* 響應式調整 */
+@media (max-width: 1200px) {
+  .quality-defect-container {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 992px) {
+  .quality-defect-container {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .quality-defect-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .quality-check-section,
+  .defect-record-section {
+    flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .quality-defect-container {
+    gap: 12px;
+  }
+}
+
+/* Quality Check 項目樣式 */
+.quality-check-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 60px;
+}
+
+.quality-check-item:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.quality-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.quality-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #212529;
+  flex: 1;
+}
+
+.quality-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-text.pass {
+  color: #28a745;
+}
+
+.status-text.fail {
+  color: #dc3545;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+  .quality-check-item {
+    padding: 12px;
+    min-height: 50px;
+  }
+  
+  .quality-label {
+    font-size: 0.9rem;
+  }
+  
+  .status-text {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quality-check-item {
+    padding: 10px;
+    min-height: 45px;
+  }
+  
+  .quality-label {
+    font-size: 0.85rem;
+  }
+  
+  .status-text {
+    font-size: 0.75rem;
+  }
+  
+  .quality-status {
+    gap: 6px;
   }
 }
 </style>

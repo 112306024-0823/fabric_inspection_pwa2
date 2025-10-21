@@ -114,7 +114,6 @@ export function useInspections() {
         created_at: existingInspection?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
         rowversion: (existingInspection?.rowversion || 0) + 1,
-        _dirty: true
       };
 
       // 儲存到本地
@@ -143,7 +142,7 @@ export function useInspections() {
         inspection_finished_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         rowversion: inspection.rowversion + 1,
-        _dirty: true
+        
       };
 
       await db.inspections.put(finishedInspection);

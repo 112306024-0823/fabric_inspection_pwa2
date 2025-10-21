@@ -23,7 +23,7 @@ export function useDefects() {
       if (!grouped[code.category]) {
         grouped[code.category] = [];
       }
-      grouped[code.category].push(code);
+      grouped[code.category]?.push(code);
     });
     return grouped;
   });

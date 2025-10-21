@@ -1,42 +1,5 @@
 <template>
   <q-page class="roll-list-page">
-    <!-- 狀態列 -->
-    <div class="status-bar q-pa-sm">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="isOnline ? 'positive' : 'negative'" 
-            text-color="white" 
-            icon="wifi"
-            size="sm"
-          >
-            {{ isOnline ? 'Online' : 'Offline' }}
-          </q-chip>
-          <q-chip 
-            v-if="pendingSyncCount > 0"
-            color="warning" 
-            text-color="white" 
-            icon="sync_problem"
-            size="sm"
-            class="q-ml-sm"
-          >
-            {{ pendingSyncCount }} 待同步
-          </q-chip>
-        </div>
-        <div class="col-auto">
-          <q-btn 
-            flat 
-            round 
-            icon="sync" 
-            @click="handleSync"
-            :loading="syncing"
-            size="sm"
-          >
-            <q-tooltip>同步資料</q-tooltip>
-          </q-btn>
-        </div>
-      </div>
-    </div>
 
     <!-- 條碼輸入區 -->
     <div class="barcode-section q-pa-md">
@@ -79,146 +42,79 @@
     <div v-if="currentRoll" class="fabric-info q-pa-md">
       <div class="text-h6 q-mb-md">Fabric Information</div>
       
-      <div class="row q-gutter-md">
-        <div class="col-md-3 col-sm-6 col-xs-12">
-          <q-input
-            v-model="currentRoll.bl_no"
-            label="BL#"
-            outlined
-            dense
-            readonly
-          />
+      <!-- 簡化的資訊卡片 -->
+      <div class="fabric-info-grid">
+        <div class="info-card">
+          <div class="info-label">BL#</div>
+          <div class="info-value">{{ currentRoll.bl_no || '-' }}</div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-          <q-input
-            v-model="currentRoll.po_no"
-            label="PO#"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">PO#</div>
+          <div class="info-value">{{ currentRoll.po_no || '-' }}</div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-          <q-input
-            v-model="currentRoll.style"
-            label="Style"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">Style</div>
+          <div class="info-value">{{ currentRoll.style || '-' }}</div>
         </div>
-        <div class="col-md-3 col-sm-6 col-xs-12">
-          <q-input
-            v-model="currentRoll.barcode"
-            label="Barcode"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">Barcode</div>
+          <div class="info-value">{{ currentRoll.barcode || '-' }}</div>
         </div>
-      </div>
-
-      <div class="row q-gutter-md q-mt-sm">
-        <div class="col-md-6 col-sm-12">
-          <q-input
-            v-model="currentRoll.fabric_description"
-            label="Fabric"
-            outlined
-            dense
-            readonly
-            type="textarea"
-            rows="2"
-          />
+        <div class="info-card">
+          <div class="info-label">Fabric</div>
+          <div class="info-value">{{ currentRoll.fabric_description || '-' }}</div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-          <q-input
-            v-model="currentRoll.color"
-            label="Color"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">Color</div>
+          <div class="info-value">{{ currentRoll.color || '-' }}</div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-          <q-input
-            v-model="currentRoll.lot"
-            label="Lot"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">Lot</div>
+          <div class="info-value">{{ currentRoll.lot || '-' }}</div>
         </div>
-        <div class="col-md-2 col-sm-4 col-xs-6">
-          <q-input
-            v-model="currentRoll.roll_number"
-            label="Roll#"
-            outlined
-            dense
-            readonly
-          />
+        <div class="info-card">
+          <div class="info-label">Roll#</div>
+          <div class="info-value">{{ currentRoll.roll_number || '-' }}</div>
         </div>
       </div>
 
       <!-- 長度資訊 -->
-      <div class="length-info q-mt-md">
-        <div class="text-subtitle2 q-mb-sm">Length Information (YDS)</div>
-        <div class="row q-gutter-md">
-          <div class="col-md-2 col-sm-4 col-xs-6">
-            <q-input
-              v-model="currentRoll.total_length"
-              label="Total"
-              outlined
-              dense
-              readonly
-            />
+      <div class="length-info-section q-mt-md">
+        <div class="text-h6 q-mb-md">Length Information (YDS)</div>
+        <div class="length-info-grid">     
+
+          <div class="info-card">
+            <div class="info-label">Total</div>
+            <div class="info-value">{{ currentRoll.total_length || '0' }}</div>
           </div>
-          <div class="col-md-2 col-sm-4 col-xs-6">
-            <q-input
-              v-model="currentRoll.need_inspect_length"
-              label="Need Inspect"
-              outlined
-              dense
-              readonly
-            />
+          <div class="info-card">
+            <div class="info-label">Need Inspect</div>
+            <div class="info-value">{{ currentRoll.need_inspect_length || '0' }}</div>
           </div>
-          <div class="col-md-2 col-sm-4 col-xs-6">
-            <q-input
-              v-model="currentRoll.standard_yard"
-              label="Pass Condition"
-              outlined
-              dense
-              readonly
-            />
+          <div class="info-card">
+            <div class="info-label">Pass Condition</div>
+            <div class="info-value">{{ currentRoll.standard_yard || '0' }}</div>
           </div>
-          <div class="col-md-2 col-sm-4 col-xs-6">
-            <q-input
-              v-model="currentRoll.inspected_length"
-              label="Inspected"
-              outlined
-              dense
-              readonly
-            />
+          <div class="info-card">
+            <div class="info-label">Inspected</div>
+            <div class="info-value">{{ currentRoll.inspected_length || '0' }}</div>
           </div>
-          <div class="col-md-2 col-sm-4 col-xs-6">
-            <q-input
-              v-model="reachedStatus"
-              label="Reached"
-              outlined
-              dense
-              readonly
-            />
+          <div class="info-card">
+            <div class="info-label">Reached</div>
+            <div class="info-value">{{ reachedStatus }}</div>
           </div>
         </div>
       </div>
 
       <!-- 操作按鈕 -->
       <div class="action-buttons q-mt-md">
-        <div class="row justify-end q-gutter-sm">
+        <div class="button-group">
           <q-btn 
             color="primary" 
             @click="handleRollStart"
             :disable="!canStartInspection"
             size="lg"
+            class="action-btn"
           >
             Roll Start
           </q-btn>
@@ -226,6 +122,7 @@
             color="grey" 
             @click="handleReset"
             size="lg"
+            class="action-btn"
           >
             Reset
           </q-btn>
@@ -297,11 +194,14 @@
           <q-td :props="props">
             <q-btn 
               flat 
+              round
               color="primary" 
-              label="List"
+              icon="visibility"
               size="sm"
               @click="handleViewDetails(props.row)"
-            />
+            >
+              <q-tooltip>檢驗記錄</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
 
@@ -309,11 +209,14 @@
           <q-td :props="props">
             <q-btn 
               flat 
+              round
               color="secondary" 
-              label="Edit"
+              icon="edit"
               size="sm"
               @click="handleEdit(props.row)"
-            />
+            >
+              <q-tooltip>編輯</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
 
@@ -321,11 +224,14 @@
           <q-td :props="props">
             <q-btn 
               flat 
+              round
               color="negative" 
-              label="Delete"
+              icon="delete"
               size="sm"
               @click="handleDelete(props.row)"
-            />
+            >
+              <q-tooltip>刪除</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
       </q-table>
@@ -371,11 +277,7 @@ const $q = useQuasar();
 
 // Composables
 const { 
-  isOnline, 
-  pendingSyncCount, 
-  performManualSync,
-  setCurrentRoll,
-  updatePendingSyncCount
+  setCurrentRoll
 } = useAppState();
 
 const {
@@ -388,14 +290,14 @@ const {
   loadRollsFromServer,
   searchRollByBarcode,
   editRoll,
-  deleteRoll
+  deleteRoll,
+  updateRollStatus
 } = useRolls();
 
 // 響應式資料
 const barcodeInput = ref('');
 const currentRoll = ref<Roll | null>(null);
 const searching = ref(false);
-const syncing = ref(false);
 const showError = ref(false);
 
 // 表格欄位定義
@@ -448,19 +350,19 @@ const rollColumns = [
   },
   {
     name: 'detail',
-    label: 'Detail',
+    label: '查看',
     align: 'center',
     field: 'detail'
   },
   {
     name: 'modify',
-    label: 'Modify',
+    label: '編輯',
     align: 'center',
     field: 'modify'
   },
   {
     name: 'delete',
-    label: 'Delete',
+    label: '刪除',
     align: 'center',
     field: 'delete'
   }
@@ -541,35 +443,18 @@ const handleRollStart = () => {
   void router.push(`/inspect/${currentRoll.value.id}`);
 };
 
-const handleReset = () => {
+const handleReset = async () => {
+  if (currentRoll.value) {
+    // 將當前布捲狀態重置為 pending
+    await updateRollStatus(currentRoll.value.id, 'pending');
+  }
+  
+  // 清除當前選中的布捲
   currentRoll.value = null;
   setCurrentRoll(null);
   barcodeInput.value = '';
 };
 
-const handleSync = async () => {
-  syncing.value = true;
-  try {
-    const result = await performManualSync();
-    $q.notify({
-      type: result.success ? 'positive' : 'warning',
-      message: result.message,
-      position: 'top',
-      icon: result.success ? 'cloud_done' : 'cloud_off',
-      timeout: 2000
-    });
-  } catch (error) {
-    console.error('Sync error:', error);
-    $q.notify({
-      type: 'negative',
-      message: '同步發生錯誤',
-      position: 'top'
-    });
-  } finally {
-    syncing.value = false;
-    await updatePendingSyncCount();
-  }
-};
 
 // Status 相關顏色與圖示
 const getStatusColor = (status: string) => {
@@ -738,5 +623,131 @@ onMounted(async () => {
 
 .q-table {
   border-radius: 4px;
+}
+
+/* 簡化的 Fabric Information 樣式 */
+.fabric-info-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.length-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.info-card {
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: fit-content;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  min-width: 120px;
+}
+
+/* 響應式調整 */
+@media (max-width: 1200px) {
+  .fabric-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .fabric-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  .length-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  
+  .info-card {
+    padding: 6px 0;
+    gap: 6px;
+  }
+  
+  .info-label {
+    font-size: 0.75rem;
+  }
+  
+  .info-value {
+    font-size: 0.85rem;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .fabric-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .length-info-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .info-card {
+    padding: 4px 0;
+    gap: 4px;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: center;
+  }
+  
+  .info-label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+  }
+  
+  .info-value {
+    font-size: 0.8rem;
+  }
 }
 </style>

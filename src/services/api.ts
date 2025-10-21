@@ -87,10 +87,10 @@ export async function getAllDefectCodes(): Promise<DefectCode[]> {
     const { data, error } = await supabase
       .from('defect_codes')
       .select('*')
-      .eq('is_active', true)
       .order('category', { ascending: true });
 
     if (error) throw error;
+    // 後端已經過濾了 is_active = 1，這裡不需要再過濾
     return data as DefectCode[];
   } catch (error) {
     console.error('Error fetching defect codes:', error);

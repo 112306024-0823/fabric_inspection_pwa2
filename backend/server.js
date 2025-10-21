@@ -614,11 +614,35 @@ app.post('/api/sync/pull', async (req, res) => {
 // 輔助函數
 async function upsertRoll(payload) {
   const request = pool.request();
-  Object.keys(payload).forEach(key => {
-    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion') {
-      request.input(key, sql.NVarChar, payload[key]);
+  
+  // 定義數字欄位
+  const numericFields = ['total_length', 'need_inspect_length', 'inspected_length', 'standard_yard', 'standard_kg', 'avg_points'];
+  
+  // 確保所有必要的欄位都有值，即使是 null
+  const requiredFields = ['barcode', 'bl_no', 'po_no', 'style', 'color', 'lot', 'roll_number', 
+                         'fabric_description', 'supplier', 'total_length', 'need_inspect_length', 
+                         'inspected_length', 'standard_yard', 'standard_kg', 'grade', 'avg_points', 'status'];
+  
+  // 先設置所有必要的參數
+  requiredFields.forEach(field => {
+    if (numericFields.includes(field)) {
+      request.input(field, sql.Decimal(10, 2), payload[field] || 0);
+    } else {
+      request.input(field, sql.NVarChar, payload[field] || null);
     }
   });
+  
+  // 處理其他非必要欄位
+  Object.keys(payload).forEach(key => {
+    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion' && key !== '_dirty' && !requiredFields.includes(key)) {
+      if (numericFields.includes(key)) {
+        request.input(key, sql.Decimal(10, 2), payload[key] || 0);
+      } else {
+        request.input(key, sql.NVarChar, payload[key] || null);
+      }
+    }
+  });
+  
   request.input('id', sql.UniqueIdentifier, payload.id);
   
   await request.query(`
@@ -640,24 +664,42 @@ async function upsertRoll(payload) {
         need_inspect_length = @need_inspect_length,
         inspected_length = @inspected_length,
         standard_yard = @standard_yard,
+        standard_kg = @standard_kg,
         grade = @grade,
         avg_points = @avg_points,
         status = @status
     WHEN NOT MATCHED THEN
       INSERT (id, barcode, bl_no, po_no, style, color, lot, roll_number,
               fabric_description, supplier, total_length, need_inspect_length,
-              inspected_length, standard_yard, grade, avg_points, status)
+              inspected_length, standard_yard, standard_kg, grade, avg_points, status)
       VALUES (@id, @barcode, @bl_no, @po_no, @style, @color, @lot, @roll_number,
               @fabric_description, @supplier, @total_length, @need_inspect_length,
-              @inspected_length, @standard_yard, @grade, @avg_points, @status);
+              @inspected_length, @standard_yard, @standard_kg, @grade, @avg_points, @status);
   `);
 }
 
 async function upsertInspection(payload) {
   const request = pool.request();
+  
+  // 定義數字欄位
+  const numericFields = [
+    'standard_weight', 'checked_weight', 'standard_length', 'checked_length',
+    'ticket_full_width', 'actual_full_width', 'ticket_cut_width', 'moisture',
+    'skew_width', 'skew_height'
+  ];
+  
+  // 定義布林欄位
+  const booleanFields = ['finished'];
+  
   Object.keys(payload).forEach(key => {
-    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion') {
-      request.input(key, sql.NVarChar, payload[key]);
+    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion' && key !== '_dirty') {
+      if (numericFields.includes(key)) {
+        request.input(key, sql.Decimal(10, 2), payload[key]);
+      } else if (booleanFields.includes(key)) {
+        request.input(key, sql.Bit, payload[key]);
+      } else {
+        request.input(key, sql.NVarChar, payload[key]);
+      }
     }
   });
   request.input('id', sql.UniqueIdentifier, payload.id);
@@ -710,11 +752,48 @@ async function upsertInspection(payload) {
 
 async function upsertDefect(payload) {
   const request = pool.request();
-  Object.keys(payload).forEach(key => {
-    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion') {
-      request.input(key, sql.NVarChar, payload[key]);
+  
+  // 定義數字欄位
+  const numericFields = ['position_yard', 'level'];
+  
+  // 定義 UUID 欄位
+  const uuidFields = ['roll_id', 'inspection_id', 'defect_code_id'];
+  
+  // 確保必要的欄位存在，即使是 null
+  const requiredFields = ['roll_id', 'inspection_id', 'defect_code_id', 'position_yard', 'level', 'remark'];
+  
+  // 先設置所有必要的參數為 null
+  requiredFields.forEach(field => {
+    if (uuidFields.includes(field)) {
+      request.input(field, sql.UniqueIdentifier, payload[field] || null);
+    } else if (numericFields.includes(field)) {
+      if (field === 'position_yard') {
+        request.input(field, sql.Decimal(10, 2), payload[field] || 0);
+      } else {
+        request.input(field, sql.Int, payload[field] || 1);
+      }
+    } else {
+      request.input(field, sql.NVarChar, payload[field] || null);
     }
   });
+  
+  // 處理其他非必要欄位
+  Object.keys(payload).forEach(key => {
+    if (key !== 'id' && key !== 'created_at' && key !== 'rowversion' && key !== '_dirty' && !requiredFields.includes(key)) {
+      if (numericFields.includes(key)) {
+        if (key === 'position_yard') {
+          request.input(key, sql.Decimal(10, 2), payload[key]);
+        } else {
+          request.input(key, sql.Int, payload[key]);
+        }
+      } else if (uuidFields.includes(key)) {
+        request.input(key, sql.UniqueIdentifier, payload[key]);
+      } else {
+        request.input(key, sql.NVarChar, payload[key]);
+      }
+    }
+  });
+  
   request.input('id', sql.UniqueIdentifier, payload.id);
   
   await request.query(`

@@ -76,7 +76,7 @@ export interface DefectCode {
 export interface Defect {
   id: string;
   roll_id: string;
-  inspection_id?: string;
+  inspection_id?: string | null | undefined;
   defect_code_id: string;
   position_yard?: number;
   level: number;

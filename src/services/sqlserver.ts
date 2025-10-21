@@ -310,7 +310,11 @@ export const supabase = {
       order: (column: string, options: { ascending: boolean }) => ({
         then: async (callback: (result: any) => void) => {
           try {
-            const response = await apiRequest(`/${table}`);
+            // 處理 defect_codes 的特殊端點
+            const endpoint = table === 'defect_codes' 
+              ? '/defect-codes'
+              : `/${table}`;
+            const response = await apiRequest(endpoint);
             callback({ data: response.data, error: null });
           } catch (error: any) {
             callback({ data: null, error: { message: error.message } });
@@ -385,7 +389,7 @@ export const supabase = {
         
         const response = await apiRequest(endpoint, {
           method: 'POST',
-          body: body ? JSON.stringify(body) : undefined
+          body: body ? JSON.stringify(body) : null
         });
         
         callback({ data: response, error: null });
