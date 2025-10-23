@@ -240,10 +240,53 @@
     <!-- 缺陷列表 -->
     <div class="defect-list q-pa-md">
       <div class="text-h6 q-mb-md">Roll Defect List</div>
-      <div class="defect-placeholder">
+      
+      <div v-if="!currentRoll" class="defect-placeholder">
         <q-card flat bordered class="q-pa-lg text-center text-grey-6">
           <div class="text-subtitle1">選擇布捲查看缺陷列表</div>
         </q-card>
+      </div>
+      
+      <div v-else-if="defectsList.length === 0" class="defect-placeholder">
+        <q-card flat bordered class="q-pa-lg text-center text-grey-6">
+          <div class="text-subtitle1">此布捲暫無缺陷記錄</div>
+        </q-card>
+      </div>
+      
+      <div v-else>
+        <q-table
+          :rows="defectsList"
+          :columns="defectColumns"
+          row-key="id"
+          flat
+          bordered
+          :rows-per-page-options="[10, 20, 50]"
+          :pagination="{ rowsPerPage: 10 }"
+        >
+          <template v-slot:body-cell-defect_code="props">
+            <q-td :props="props">
+              {{ getDefectCodeDescription(props.row.defect_code_id) }}
+            </q-td>
+          </template>
+          
+          <template v-slot:body-cell-level="props">
+            <q-td :props="props">
+              <q-chip 
+                :color="getDefectLevelColor(props.row.level)"
+                text-color="white"
+                size="sm"
+              >
+                Level {{ props.row.level }}
+              </q-chip>
+            </q-td>
+          </template>
+          
+          <template v-slot:body-cell-position_yard="props">
+            <q-td :props="props">
+              {{ props.row.position_yard || 0 }} YDS
+            </q-td>
+          </template>
+        </q-table>
       </div>
     </div>
 
@@ -270,6 +313,7 @@ import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAppState } from '../composables/useAppState';
 import { useRolls } from '../composables/useRolls';
+import { useDefects } from '../composables/useDefects';
 import type { Roll } from '../types';
 
 const router = useRouter();
@@ -293,6 +337,12 @@ const {
   deleteRoll,
   updateRollStatus
 } = useRolls();
+
+const {
+  defectsList,
+  loadDefectsFromLocal,
+  getDefectCodeDescription
+} = useDefects();
 
 // 響應式資料
 const barcodeInput = ref('');
@@ -368,6 +418,47 @@ const rollColumns = [
   }
 ];
 
+// 缺陷表格欄位定義
+const defectColumns = [
+  {
+    name: 'defect_code',
+    required: true,
+    label: '缺陷描述',
+    align: 'left',
+    field: 'defect_code_id',
+    sortable: true
+  },
+  {
+    name: 'position_yard',
+    label: '位置 (YDS)',
+    align: 'center',
+    field: 'position_yard',
+    sortable: true
+  },
+  {
+    name: 'level',
+    label: '等級',
+    align: 'center',
+    field: 'level',
+    sortable: true
+  },
+  {
+    name: 'remark',
+    label: '備註',
+    align: 'left',
+    field: 'remark',
+    sortable: false
+  },
+  {
+    name: 'created_at',
+    label: '建立時間',
+    align: 'center',
+    field: 'created_at',
+    sortable: true,
+    format: (val: string) => new Date(val).toLocaleString()
+  }
+];
+
 // 計算屬性 - 根據 barcode 篩選
 const filteredRollsList = computed(() => {
   if (!barcodeInput.value.trim()) {
@@ -416,6 +507,16 @@ const handleBarcodeSearch = async () => {
     if (roll) {
       currentRoll.value = roll;
       setCurrentRoll(roll);
+      
+      // 載入該布捲的缺陷資料
+      await loadDefectsFromLocal(roll.id);
+      
+      $q.notify({
+        type: 'positive',
+        message: `找到布捲: ${roll.barcode}`,
+        position: 'top',
+        timeout: 1500
+      });
     } else {
       $q.notify({
         type: 'warning',
@@ -496,11 +597,15 @@ const getGradeColor = (grade: string) => {
   }
 };
 
-const handleViewDetails = (roll: Roll) => {
+const handleViewDetails = async (roll: Roll) => {
   // 與搜尋相同：帶入該 roll 作為目前顯示的 Fabric Information
   currentRoll.value = roll;
   setCurrentRoll(roll);
   barcodeInput.value = roll.barcode;
+  
+  // 載入該布捲的缺陷資料
+  await loadDefectsFromLocal(roll.id);
+  
   // 捲到上方資訊區域
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };

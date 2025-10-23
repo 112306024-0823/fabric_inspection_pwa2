@@ -55,15 +55,12 @@
                   <span class="text-weight-medium">檢查項目</span>
                 </div>
                 <div class="spec-header-item spec-item-standard">
-                  <q-icon name="assignment" size="sm" class="q-mr-xs" />
                   <span class="text-weight-medium">標準值</span>
                 </div>
                 <div class="spec-header-item spec-item-checked">
-                  <q-icon name="edit" size="sm" class="q-mr-xs" />
                   <span class="text-weight-medium">實測值</span>
                 </div>
                 <div class="spec-header-item spec-item-diff">
-                  <q-icon name="trending_up" size="sm" class="q-mr-xs" />
                   <span class="text-weight-medium">差異%</span>
                 </div>
               </div>
@@ -1583,8 +1580,8 @@ onMounted(() => {
 }
 
 .quality-label {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 400;
   color: #212529;
   flex: 1;
 }
