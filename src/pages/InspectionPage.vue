@@ -40,7 +40,7 @@
       <div class="col-md-8 col-sm-12">
         <!-- Spec Check 區塊 -->
         <q-card class="spec-check-card q-mb-md shadow-2">
-          <q-card-section>
+          <q-card-section class="spec-check-content">
             <div class="section-title q-mb-md">
               <span class="text-h6">Specification Check</span>
             </div>
@@ -181,7 +181,7 @@
                     v-model.number="specForm.ticket_full_width"
                     label="Ticket Full Width"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('ticket_full_width', 'spec')"
@@ -193,7 +193,7 @@
                     v-model.number="specForm.actual_full_width"
                     label="Actual Full Width"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('actual_full_width', 'spec')"
@@ -205,7 +205,7 @@
                     v-model.number="specForm.ticket_cut_width"
                     label="Ticket Cut Width"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('ticket_cut_width', 'spec')"
@@ -219,7 +219,7 @@
                     v-model.number="specForm.moisture"
                     label="Moisture %"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('moisture', 'spec')"
@@ -231,7 +231,7 @@
                     v-model.number="specForm.skew_width"
                     label="Skew Width"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('skew_width', 'spec')"
@@ -243,7 +243,7 @@
                     v-model.number="specForm.skew_height"
                     label="Skew Height"
                     outlined
-                    dense
+                    
                     type="number"
                     step="0.01"
                     @focus="handleFieldFocus('skew_height', 'spec')"
@@ -440,7 +440,7 @@
                         :options="categoryOptions"
                         label="Issue Category"
                         outlined
-                        dense
+                        
                         emit-value
                         map-options
                         @update:model-value="onCategoryChange"
@@ -452,7 +452,7 @@
                         :options="filteredDefectCodes"
                         label="Description"
                         outlined
-                        dense
+                        
                         option-value="id"
                         :option-label="opt => getDefectCodeDescription(opt.id, 'zh')"
                         emit-value
@@ -477,7 +477,7 @@
                         v-model="defectForm.remark"
                         label="Remark"
                         outlined
-                        dense
+                        
                       />
                     </div>
                     <div class="col-6">
@@ -486,7 +486,7 @@
                         v-model.number="defectForm.position_yard"
                         label="Position (Yard)"
                         outlined
-                        dense
+                        
                         type="number"
                         step="0.01"
                         @focus="handleFieldFocus('position_yard', 'defect')"
@@ -502,7 +502,7 @@
                         :options="[1, 2, 3, 4, 5]"
                         label="Severity Level"
                         outlined
-                        dense
+                        
                         emit-value
                         map-options
                       />
@@ -515,7 +515,7 @@
                         @click="handleAddDefect"
                         :disable="!canAddDefect"
                         class="full-width"
-                        style="height: 40px"
+                        style="height: 55px"
                       />
                     </div>
                   </div>
@@ -523,8 +523,48 @@
               </div>
             </div>
 
-            <!-- 缺陷列表 -->
-            <div v-if="defectsList.length > 0" class="defect-list q-mt-md">
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <!-- 右側數字鍵盤和缺陷列表 -->
+      <div class="col-md-4 col-sm-12">
+        <!-- 數字鍵盤 -->
+        <q-card class="keypad-card shadow-2 sticky-keypad">
+          <q-card-section>
+            
+            <div class="keypad-grid">
+              <div class="keypad-row" v-for="(row, rowIndex) in keypadLayout" :key="rowIndex">
+                <q-btn
+                  v-for="key in row"
+                  :key="key"
+                  :label="key === 'Back' ? '←' : key"
+                  :color="key === 'Back' ? 'negative' : 'primary'"
+                  class="keypad-btn"
+                  @click="handleKeypadInput(key)"
+                  unelevated
+                />
+              </div>
+            </div>
+            <div class="text-caption text-grey-8 q-mt-sm text-center">
+              <div v-if="focusedField" class="text-primary text-weight-medium">
+                當前輸入: {{ getFieldLabel(focusedField) }}
+              </div>
+              <div v-else class="text-grey-6">
+                請點擊數字欄位開始輸入
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- 缺陷列表 -->
+        <q-card class="defect-table-card shadow-2 q-mt-md">
+          <q-card-section>
+            <div class="section-title q-mb-md">
+              <span class="text-h6">Defect List</span>
+            </div>
+            
+            <div v-if="defectsList.length > 0" class="defect-list">
               <q-table
                 :rows="defectsList"
                 :columns="defectColumns"
@@ -575,36 +615,6 @@
             <div v-else class="text-center text-grey-6 q-pa-md">
               <q-icon name="info" size="md" />
               <div class="q-mt-sm">尚無缺陷記錄</div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- 右側數字鍵盤 -->
-      <div class="col-md-4 col-sm-12">
-        <q-card class="keypad-card shadow-2 sticky-keypad">
-          <q-card-section>
-            
-            <div class="keypad-grid">
-              <div class="keypad-row" v-for="(row, rowIndex) in keypadLayout" :key="rowIndex">
-                <q-btn
-                  v-for="key in row"
-                  :key="key"
-                  :label="key === 'Back' ? '←' : key"
-                  :color="key === 'Back' ? 'negative' : 'primary'"
-                  class="keypad-btn"
-                  @click="handleKeypadInput(key)"
-                  unelevated
-                />
-              </div>
-            </div>
-            <div class="text-caption text-grey-8 q-mt-sm text-center">
-              <div v-if="focusedField" class="text-primary text-weight-medium">
-                當前輸入: {{ getFieldLabel(focusedField) }}
-              </div>
-              <div v-else class="text-grey-6">
-                請點擊數字欄位開始輸入
-              </div>
             </div>
           </q-card-section>
         </q-card>
@@ -841,14 +851,25 @@ const defectColumns = [
 // 方法
 const loadRollData = async () => {
   const rollId = route.params.rollId as string;
-  if (!rollId) {
+  console.log('🔍 Loading roll data for ID:', rollId);
+  
+  if (!rollId || rollId === 'undefined' || rollId === 'null') {
+    console.warn('❌ Invalid rollId:', rollId);
+    $q.notify({
+      type: 'negative',
+      message: '無效的布捲ID',
+      position: 'top'
+    });
     void router.push('/');
     return;
   }
 
   try {
+    console.log('📦 Fetching roll by ID:', rollId);
     const roll = await getRollById(rollId);
+    
     if (!roll) {
+      console.warn('❌ Roll not found:', rollId);
       $q.notify({
         type: 'negative',
         message: '找不到指定的布捲',
@@ -857,6 +878,8 @@ const loadRollData = async () => {
       void router.push('/');
       return;
     }
+    
+    console.log('✅ Roll loaded successfully:', roll);
 
     currentRoll.value = roll;
     setCurrentRoll(roll);
@@ -1308,6 +1331,53 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* 設定 specification check 和數字鍵盤相同高度 */
+.spec-check-card {
+  height: 420px; /* 固定高度，調整為更合適的高度 */
+}
+
+.keypad-card {
+  height: 420px; /* 調整數字鍵盤高度，為缺陷列表留出空間 */
+  display: flex;
+  flex-direction: column;
+}
+
+.defect-table-card {
+  height: 370px; /* 缺陷列表卡片高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+.keypad-card .q-card__section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Specification Check 內容區域樣式 */
+.spec-check-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.spec-check-content .section-title {
+  flex-shrink: 0; /* 標題不縮放 */
+}
+
+.spec-check-content .spec-check-grid {
+  flex-shrink: 0; /* 表格不縮放 */
+}
+
+.spec-check-content > div:last-child {
+  flex: 1; /* 其他規格項目區域可以伸縮 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
 .spec-group {
   padding: 12px;
   background: #fafafa;
@@ -1350,7 +1420,23 @@ onMounted(() => {
 }
 
 .defect-list {
-  max-height: 400px;
+  max-height: 350px; /* 調整為適合新卡片的高度 */
+  overflow-y: auto;
+}
+
+.defect-table-card .q-card__section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.defect-table-card .section-title {
+  flex-shrink: 0; /* 標題不縮放 */
+}
+
+.defect-table-card .defect-list {
+  flex: 1; /* 表格區域可以伸縮 */
   overflow-y: auto;
 }
 
@@ -1485,6 +1571,25 @@ onMounted(() => {
 @media (max-width: 768px) {
   .sticky-keypad {
     position: static;
+  }
+  
+  /* 在小螢幕上取消固定高度，讓內容自然流動 */
+  .spec-check-card,
+  .keypad-card,
+  .defect-table-card {
+    height: auto !important;
+  }
+  
+  .keypad-card .q-card__section {
+    justify-content: flex-start;
+  }
+  
+  .spec-check-content {
+    height: auto;
+  }
+  
+  .defect-table-card .q-card__section {
+    height: auto;
   }
   
   .bottom-actions {

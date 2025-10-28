@@ -93,7 +93,7 @@ export function useAppState() {
         return { success: false, message: '同步部分失敗，請稍後重試' };
       }
     } catch (error: any) {
-      console.error('❌ Manual sync failed:', error);
+      console.error('Manual sync failed:', error);
       return { success: false, message: error?.message || '同步失敗' };
     }
   };
@@ -119,6 +119,7 @@ export function useAppState() {
       console.error('Failed to initialize app state:', error);
     }
   };
+
 
   // 清理資源
   const cleanup = () => {

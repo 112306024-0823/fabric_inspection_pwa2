@@ -180,6 +180,7 @@ export function useDefects() {
       const index = defects.value.findIndex(d => d.id === defectId);
       if (index > -1) {
         defects.value.splice(index, 1);
+        
       }
 
       console.log('Defect deleted:', defectId);

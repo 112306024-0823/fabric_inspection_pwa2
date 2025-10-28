@@ -112,7 +112,8 @@
           <q-btn 
             color="primary" 
             @click="handleRollStart"
-            :disable="!canStartInspection"
+            :disable="!canStartInspection || navigating"
+            :loading="navigating"
             size="lg"
             class="action-btn"
           >
@@ -308,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { useAppState } from '../composables/useAppState';
@@ -349,6 +350,7 @@ const barcodeInput = ref('');
 const currentRoll = ref<Roll | null>(null);
 const searching = ref(false);
 const showError = ref(false);
+const navigating = ref(false); // 防止重複導航
 
 // 表格欄位定義
 const rollColumns = [
@@ -538,10 +540,45 @@ const handleBarcodeSearch = async () => {
 
 
 
-const handleRollStart = () => {
-  if (!currentRoll.value) return;
+const handleRollStart = async () => {
+  if (!currentRoll.value) {
+    console.warn('No current roll selected');
+    return;
+  }
   
-  void router.push(`/inspect/${currentRoll.value.id}`);
+  if (navigating.value) {
+    console.warn('Navigation already in progress');
+    return;
+  }
+  
+  navigating.value = true;
+  
+  try {
+    console.log('🚀 Starting roll inspection:', currentRoll.value.id);
+    
+    // 確保所有 dialog 都已關閉
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // 使用 nextTick 確保 DOM 更新完成
+    await nextTick();
+    
+    // 導航到檢驗頁面
+    await router.push(`/inspect/${currentRoll.value.id}`);
+    
+    console.log('✅ Navigation completed');
+  } catch (error) {
+    console.error('❌ Navigation failed:', error);
+    $q.notify({
+      type: 'negative',
+      message: '頁面跳轉失敗，請重試',
+      position: 'top'
+    });
+  } finally {
+    // 延遲重置導航狀態，防止快速重複點擊
+    setTimeout(() => {
+      navigating.value = false;
+    }, 1000);
+  }
 };
 
 const handleReset = async () => {
@@ -633,13 +670,16 @@ const handleEdit = async (roll: Roll) => {
     color: roll.color || ''
   };
 
-  $q.dialog({
-    component: defineAsyncComponent(() => import('../components/RollEditDialog.vue')),
-    componentProps: {
-      roll: roll,
-      formData: editFormData.value
-    }
-  }).onOk(async (updatedData: any) => {
+  try {
+    const RollEditDialog = await import('../components/RollEditDialog.vue');
+    
+    $q.dialog({
+      component: RollEditDialog.default,
+      componentProps: {
+        roll: roll,
+        formData: editFormData.value
+      }
+    }).onOk(async (updatedData: any) => {
     const ok = await editRoll(roll.id, updatedData);
     if (ok) {
       $q.notify({ 
@@ -651,6 +691,14 @@ const handleEdit = async (roll: Roll) => {
       await loadRollsFromLocal(); // 重新載入
     }
   });
+  } catch (error) {
+    console.error('Failed to load RollEditDialog:', error);
+    $q.notify({
+      type: 'negative',
+      message: '無法開啟編輯對話框',
+      position: 'top'
+    });
+  }
 };
 
 const handleDelete = (roll: Roll) => {

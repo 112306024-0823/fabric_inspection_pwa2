@@ -70,24 +70,15 @@ cd backend && npm install
 
 建立 `backend/.env`：
 ```env
-PORT=3000
-DB_SERVER=your-sql-server-ip
-DB_PORT=your-sql-server-port
-DB_NAME=your-database-name
-DB_USER=your-username
-DB_PASSWORD=your-password
-DB_ENCRYPT=false
-DB_TRUST_CERT=true
+DB_SERVER=*******
+DB_PORT=*******
+DB_DATABASE=*******
+DB_USER=*******
+DB_PASSWORD=*******
 ```
 
-建立 `.env`（根目錄）：
-```env
-VITE_API_BASE_URL=http://localhost:3000/api
-```
+3. **啟動系統步驟**
 
-3. **啟動系統**
-
-**最簡單的啟動方式：**
 ```bash
 # 終端機 1: 啟動後端
 cd backend
@@ -114,34 +105,7 @@ npx quasar dev -m pwa
 ## 🔧 故障排除
 
 1. **後端連線失敗**: 檢查 SQL Server 連線設定和防火牆
-2. **前端空白頁面**: 確認 `.env` 檔案中的 `VITE_API_BASE_URL` 設定
+2. **前端空白頁面**: 確認 檔案中的 `VITE_API_BASE_URL` 設定
 3. **同步失敗**: 檢查網路連線和後端 API 狀態
 4. **平板觸控問題**: 確認 CSS 媒體查詢設定
 
-## 🚀 部署
-
-### PWA 部署
-```bash
-npm run build
-# 部署 dist/pwa 目錄到靜態網站託管服務
-```
-
-### 後端部署
-```bash
-cd backend
-npm install 
-node server.js
-# 使用 PM2 或 systemd 管理程序
-```
-
----
-
-**🎯 最簡單的啟動方式：**
-```bash
-# 終端機 1: 啟動後端
-cd backend
-node server.js
-
-# 終端機 2: 啟動前端
-npx quasar dev -m pwa
-```

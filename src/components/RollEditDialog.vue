@@ -1,5 +1,5 @@
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" @hide="onDialogHide" persistent>
     <q-card class="edit-dialog-card">
       <q-card-section class="dialog-header">
         <div class="header-content">
