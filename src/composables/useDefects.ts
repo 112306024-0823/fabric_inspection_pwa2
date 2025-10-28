@@ -153,8 +153,8 @@ export function useDefects() {
       // 加入同步佇列
       await addToOutbox('defects', 'upsert', newDefect.id, newDefect);
 
-      // 更新本地列表
-      defects.value.push(newDefect);
+      // 重新載入當前 roll 的缺陷列表，避免重複
+      await loadDefectsFromLocal(rollId);
 
       console.log('Defect added:', newDefect.id);
       return newDefect;
@@ -176,12 +176,9 @@ export function useDefects() {
       await db.defects.delete(defectId);
       await addToOutbox('defects', 'delete', defectId, { id: defectId });
 
-      // 更新本地列表
-      const index = defects.value.findIndex(d => d.id === defectId);
-      if (index > -1) {
-        defects.value.splice(index, 1);
-        
-      }
+      // 重新載入缺陷列表，確保資料一致性
+      const rollId = defect.roll_id;
+      await loadDefectsFromLocal(rollId);
 
       console.log('Defect deleted:', defectId);
       return true;
