@@ -1,23 +1,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 // import { db } from '../database';
 import { onNetworkChange } from '../services/api';
-import { performFullSync, getPendingSyncCount } from '../services/sync';
+import { performFullSync, getPendingSyncCount, setDataChangeCallback } from '../services/sync';
 import type { AppState, Roll, Inspection } from '../types';
 
 // 全域應用程式狀態
 const appState = ref<AppState>({
   isOnline: navigator.onLine,
-  lastSyncAt: undefined,
-  pendingSyncCount: 0,
-  currentRoll: undefined,
-  currentInspection: undefined
+  pendingSyncCount: 0
 });
 
 // 網路狀態監聽器清理函數
 let networkCleanup: (() => void) | null = null;
 
-// 同步定時器
-let syncTimer: NodeJS.Timeout | null = null;
+// 🚀 移除同步定時器，改為事件驅動同步
+// let syncTimer: NodeJS.Timeout | null = null;
 
 export function useAppState() {
   // 計算屬性
@@ -29,12 +26,12 @@ export function useAppState() {
 
   // 設定當前布捲
   const setCurrentRoll = (roll: Roll | undefined) => {
-    appState.value.currentRoll = roll;
+    (appState.value as any).currentRoll = roll;
   };
 
   // 設定當前檢驗記錄
   const setCurrentInspection = (inspection: Inspection | undefined) => {
-    appState.value.currentInspection = inspection;
+    (appState.value as any).currentInspection = inspection;
   };
 
   // 更新網路狀態
@@ -53,26 +50,43 @@ export function useAppState() {
     appState.value.pendingSyncCount = await getPendingSyncCount();
   };
 
-  // 執行自動同步
+  // 資料變更通知
+  const notifyDataChanged = async () => {
+    await updatePendingSyncCount();
+    
+    // 如果線上且有待同步資料，立即觸發同步
+    if (appState.value.isOnline && appState.value.pendingSyncCount > 0) {
+      console.log('📊 Data changed, triggering auto sync...');
+      void performAutoSync();
+    }
+  };
+
+  // 自動同步
   const performAutoSync = async () => {
     if (!appState.value.isOnline) {
       console.log('📴 Offline, skipping auto sync');
       return;
     }
 
+    
+    const pendingCount = await getPendingSyncCount();
+    if (pendingCount === 0) {
+      console.log('No pending items, skipping sync');
+      return;
+    }
+
     try {
-      console.log('🔄 Performing auto sync...');
       const result = await performFullSync(appState.value.lastSyncAt);
-      
+      // 發現有待同步資料時執行
       if (result.pushSuccess && result.pullSuccess) {
         appState.value.lastSyncAt = new Date().toISOString();
         await updatePendingSyncCount();
         console.log('✓ Auto sync completed successfully');
       } else {
-        console.log('⚠ Auto sync completed with some failures');
+        console.log('Auto sync completed with some failures');
       }
     } catch (error) {
-      console.error('❌ Auto sync failed:', error);
+      console.error('Auto sync failed:', error);
     }
   };
 
@@ -104,17 +118,14 @@ export function useAppState() {
       // 設定網路狀態監聽
       networkCleanup = onNetworkChange(updateNetworkStatus);
       
+      // 🚀 設定資料變更通知回調
+      setDataChangeCallback(notifyDataChanged);
+      
       // 更新待同步數量
       await updatePendingSyncCount();
+
       
-      // 設定定時同步（每 10 秒）
-      syncTimer = setInterval(() => {
-        if (appState.value.isOnline) {
-          void performAutoSync();
-        }
-      }, 10000); // 10 秒更即時
-      
-      console.log('App state initialized');
+      console.log('App state initialized (event-driven sync enabled)');
     } catch (error) {
       console.error('Failed to initialize app state:', error);
     }
@@ -127,11 +138,7 @@ export function useAppState() {
       networkCleanup();
       networkCleanup = null;
     }
-    
-    if (syncTimer) {
-      clearInterval(syncTimer);
-      syncTimer = null;
-    }
+
   };
 
   // 組件掛載時初始化
@@ -156,6 +163,7 @@ export function useAppState() {
     setCurrentRoll,
     setCurrentInspection,
     updatePendingSyncCount,
+    notifyDataChanged,
     performAutoSync,
     performManualSync,
     initializeAppState,

@@ -2,6 +2,14 @@ import { db } from '../database';
 import { syncPush, syncPull, isOnline } from './api';
 import type { OutboxItem, SyncPushRequest, SyncPullRequest, Roll, Inspection, Defect } from '../types';
 
+// 🚀 資料變更通知回調函數
+let dataChangeCallback: (() => Promise<void>) | null = null;
+
+// 設定資料變更通知回調
+export function setDataChangeCallback(callback: () => Promise<void>) {
+  dataChangeCallback = callback;
+}
+
 // 生成唯一的客戶端變更 ID
 function generateClientMutationId(): string {
   return `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -50,6 +58,11 @@ export async function addToOutbox(
   } else {
     console.log('📴 Offline - added to outbox:', outboxItem.entity, outboxItem.op);
   }
+
+  // 通知資料變更（觸發智能同步）
+  if (dataChangeCallback) {
+    void dataChangeCallback();
+  }
 }
 
 // 執行同步推送
@@ -68,8 +81,6 @@ export async function performSyncPush(): Promise<{ success: boolean; synced: num
       return { success: true, synced: 0, failed: 0, errors: [] };
     }
 
-    console.log(`🔄 Syncing ${outboxItems.length} items...`);
-
     const request: SyncPushRequest = {
       mutations: outboxItems
     };
@@ -82,7 +93,7 @@ export async function performSyncPush(): Promise<{ success: boolean; synced: num
     // 處理同步結果
     for (const result of response.results) {
       if (result.success) {
-        // 同步成功，從 outbox 移除
+        // 同步成功，從 outbox移除
         await db.outbox.where('clientMutationId').equals(result.clientMutationId).delete();
         
         // 更新本地資料的 _dirty 標記和伺服器時間
@@ -94,7 +105,7 @@ export async function performSyncPush(): Promise<{ success: boolean; synced: num
         }
         syncedCount++;
       } else {
-        console.error('❌ Sync failed for item:', result.clientMutationId, result.error);
+        console.error('Sync failed for item:', result.clientMutationId, result.error);
         failedCount++;
         if (result.error) errors.push(result.error);
       }
@@ -111,13 +122,13 @@ export async function performSyncPush(): Promise<{ success: boolean; synced: num
 // 執行同步拉取
 export async function performSyncPull(lastSyncAt?: string): Promise<boolean> {
   if (!isOnline()) {
-    console.log('Offline, skipping sync pull');
+    //離線則不會pull資料
     return false;
   }
 
   try {
     const request: SyncPullRequest = {
-      since: lastSyncAt,
+      since: lastSyncAt || '',
       take: 100
     };
 
@@ -137,6 +148,8 @@ export async function performSyncPull(lastSyncAt?: string): Promise<boolean> {
 async function updateLocalDataAfterSync(outboxItem: OutboxItem, serverUpdatedAt: string): Promise<void> {
   const { entity, key, payload } = outboxItem;
 
+
+  
   switch (entity) {
     case 'rolls':
       await db.rolls.update(key, {
@@ -192,10 +205,10 @@ async function mergeServerData(serverData: { rolls: Roll[]; inspections: Inspect
 
 // 完整同步（推送 + 拉取）
 export async function performFullSync(lastSyncAt?: string): Promise<{ pushSuccess: boolean; pullSuccess: boolean }> {
-  const pushSuccess = await performSyncPush();
+  const pushResult = await performSyncPush();
   const pullSuccess = await performSyncPull(lastSyncAt);
   
-  return { pushSuccess, pullSuccess };
+  return { pushSuccess: pushResult.success, pullSuccess };
 }
 
 // 取得待同步項目數量
